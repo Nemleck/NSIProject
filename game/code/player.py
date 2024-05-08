@@ -8,8 +8,8 @@ class PartialPlayer(Entity):
     def __init__(self, background: "Background", character: str, tileSize):
         super().__init__(background, 0, 0, character, tileSize, "idle")
         
-        self.capaMaxCooldown = 3
-        self.capaCurrCooldown = 3
+        self.capaMaxCooldown = 3.0
+        self.capaCurrCooldown = 3.0
         self.capaClicking = False
 
         self.walkingSurface = Texture(self, self.character, "walk")
@@ -32,13 +32,13 @@ class PartialPlayer(Entity):
         if keyboard.is_pressed("space"):
             if not self.capaClicking and self.capaCurrCooldown > self.capaMaxCooldown//3:
                 self.capaClicking = True
-                self.capaCurrCooldown -= self.capaMaxCooldown // 3
+                self.capaCurrCooldown -= self.capaMaxCooldown / 3
 
                 if (self.capaCurrCooldown < 0):
                     self.capaCurrCooldown = 0
                 
                 mousePos = pygame.mouse.get_pos()
-                self.background.addAnimatedElement(self.character, (self.xpos, self.ypos), mousePos, 1, "walk")
+                self.background.addAnimatedElement("fireball", (self.xpos, self.ypos), mousePos, 1, "idle")
         else:
             self.capaClicking = False
         

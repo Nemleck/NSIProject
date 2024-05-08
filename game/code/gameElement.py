@@ -21,6 +21,7 @@ class GameElement:
                     tile.overLayer.launch_animation("burning")
     
     def reload(self):
+        # Graphic
         self.background.window.blit(self.animPanel.get_texture(), (self.xpos, self.ypos))
 
 class AnimatedElement(GameElement):
@@ -93,8 +94,8 @@ class Entity(GameElement):
                 goal = (self.xpos + goalDiff[0]*dist, self.ypos + goalDiff[1]*dist)
                 goalTile = self.background.getAt(round((goal[0] + (1 + goalDiff[0]) * self.tileSize//2) // self.tileSize), round((goal[1] + (1 + goalDiff[1 ]) * self.tileSize//2) // self.tileSize))
                 
-                distance[0] += goalDiff[0] * dist
-                distance[1] += goalDiff[1] * dist
+                distance[0] += abs(goalDiff[0] * dist)
+                distance[1] += abs(goalDiff[1] * dist)
                 if (goalTile and not goalTile.collide):
                     self.moving = True
 
@@ -113,34 +114,32 @@ class Entity(GameElement):
         
         return result, distance
 
-    def reload(self):
-        return super().reload()
-
 class Ennemy(Entity):
     def __init__(self, background, xpos, ypos, name, tileSize, animState="idle"):
         super().__init__(background, xpos, ypos, name, tileSize, animState)
 
         self.path = []
         self.distance = 0
-        self.targetDistance = 3
+        self.targetDistance = 10
     
     def move(self, FPS, players):
-        selfPos = (self.xpos // self.tileSize, self.ypos // self.tileSize)
+        selfPos = (self.xpos // self.tileSize + 0.5, self.ypos // self.tileSize + 0.5)
 
         if self.distance >= self.tileSize:
             self.path.pop(0)
             self.distance = 0
-            print("Removed")
+            # print("Removed")
 
         for player in players:
-            playerPos = (player.xpos // self.tileSize, player.ypos // self.tileSize)
+            playerPos = (player.xpos // self.tileSize + 0.5, player.ypos // self.tileSize + 0.5)
             if (abs(selfPos[0] - playerPos[0]) + abs(selfPos[0] - playerPos[0]) <= self.targetDistance):
                 if (len(self.path) == 0):
-                    print("Found New Path")
+                    # print("Found New Path")
                     self.path = pathfinding(self.background, selfPos, playerPos)
                 
+                # print(self.path, len(self.path), self.distance)
                 if (len(self.path) > 0):
-                    print("Found Path")
+                    # print("Found Path")
                     _, result = super().move(FPS, {
                         "z": self.path[0][1] == -1,
                         "s": self.path[0][1] == 1,

@@ -26,7 +26,7 @@ FPS = 60
 player = Player(background, "wizard", TILES_SIZE)
 AIPer = AI(background, "wizard", TILES_SIZE)
 capaBar = UIElement(background, TILES_SIZE * (BACKGROUND_WIDTH - 1), TILES_SIZE * (BACKGROUND_HEIGHT - 5), "capaBar", "background", "cursor")
-EnnemyBlob = Ennemy(background, 0, 0, "blob", TILES_SIZE, "idle")
+EnnemyBlob = Ennemy(background, TILES_SIZE, TILES_SIZE, "blob", TILES_SIZE, "idle")
 capaField = UIElement(background, 0, 0, "capaField", "idle", None, False, 4*TILES_SIZE, 4*TILES_SIZE)
 capaField.stickToElement(player)
 
@@ -54,14 +54,15 @@ while not stop:
 
     player.move(FPS)
     AIPer.move(FPS)
-    EnnemyBlob.move(FPS, [player, AIPer])
+    EnnemyBlob.move(FPS, [AIPer])
     
     player.reload(FPS)
     AIPer.reload(FPS)
     EnnemyBlob.reload()
 
     capaBar.reload()
-    capaBar.cropOverLayer((( player.capaCurrCooldown / player.capaMaxCooldown )) * 5 * TILES_SIZE)
+    print((1 - (player.capaCurrCooldown / player.capaMaxCooldown )) * 5 * TILES_SIZE, ((player.capaCurrCooldown / player.capaMaxCooldown )) * 5 * TILES_SIZE)
+    capaBar.cropOverLayer((1 - (player.capaCurrCooldown / player.capaMaxCooldown )) * 5 * TILES_SIZE)
     
     pygame.display.flip()
 

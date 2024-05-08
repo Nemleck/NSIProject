@@ -1,0 +1,69 @@
+{
+    "neurons": [
+        {
+            "inputs": [
+                {},
+                {}
+            ],
+            "output": {}
+        },
+        {
+            "inputs": [
+                {},
+                {}
+            ],
+            "output": {}
+        },
+        {
+            "inputs": [
+                {}
+            ],
+            "output": {}
+        },
+        {
+            "inputs": [
+                {},
+                {}
+            ],
+            "output": {}
+        },
+        {
+            "inputs": [
+                {}
+            ],
+            "output": {}
+        },
+        {
+            "inputs": [
+                {}
+            ],
+            "output": {}
+        },
+        {
+            "inputs": [
+                {},
+                {},
+                {}
+            ],
+            "output": {}
+        },
+        {
+            "inputs": [
+                {}
+            ],
+            "output": {}
+        },
+        {
+            "inputs": [
+                {}
+            ],
+            "output": {}
+        },
+        {
+            "inputs": [
+                {}
+            ],
+            "output": {}
+        }
+    ]
+}

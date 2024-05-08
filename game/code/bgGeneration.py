@@ -3,8 +3,8 @@ from random import randint
 from bgElement import Background, BgTile
 
 def generateBackground(background: "Background", WIDTH, HEIGHT):
-    generateRiver(background, WIDTH, HEIGHT)
-    generateElement(background, "tree", WIDTH*HEIGHT//3, WIDTH, HEIGHT)
+    # generateRiver(background, WIDTH, HEIGHT)
+    # generateElement(background, "tree", WIDTH*HEIGHT//3, WIDTH, HEIGHT)
     generateElement(background, "decorative_flower", WIDTH//3, WIDTH, HEIGHT, False)
 
     for i in range(WIDTH):

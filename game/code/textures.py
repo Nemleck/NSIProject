@@ -184,10 +184,10 @@ class AnimationPanel:
                 for elm in self.textures[key].texture:
                     elm = pygame.transform.scale(self.rowTextures[key].texture, (width, height))
             else:
-                if not width:
+                if width == None:
                     width = self.textures[key].texture.get_width()
-                if not height:
-                    width = self.textures[key].texture.get_height()
+                if height == None:
+                    height = self.textures[key].texture.get_height()
 
                 self.textures[key].texture = pygame.transform.scale(self.rowTextures[key].texture, (width, height))
 

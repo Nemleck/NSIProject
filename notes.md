@@ -11,3 +11,9 @@ Dans les grandes lignes :
     -> Le but du jeu est d'être le dernier dans la partie. Pour cela, on doit affronter les autres joueurs.
     -> Chaque joueur a une classe, qui est un personnage doué de caractéristiques comme la vie ou la puissance d'attaque, mais surtout une capacité spéciale, que les IA doivent apprendre à utiliser.
     -> Les informations sur ce jeu que j'ai notées et que j'utiliserai pour le réaliser sont disponibles sur ce __Notion__ : https://messy-countess-b32.notion.site/Projet-NSI-93f780586ac84ba3b8fe93d96536ef09?pvs=4‌
+
+
+# REQUIREMENTS
+
+- Librairie pydantic
+`pip inctall pydantic`
