@@ -1,14 +1,19 @@
-from pydantic.dataclasses import dataclass
+from dataclasses import dataclass
+import json
 from random import choice, randint
 from typing import Literal
-from pydantic import BaseModel, TypeAdapter
 
-import json
+import yaml
 
 from utils import manhattan_dist
 from player import PartialPlayer, AI
 
-def brain_init(WIDTH, HEIGHT):
+def load_brain(filename) -> "Brain":
+    with open("../data/IA/wizard.yaml", "r") as f:
+        brain = yaml.safe_load(f)
+    return brain
+
+def create_new_brain(WIDTH, HEIGHT):
     EX_BRAIN = [
         {
             "input": {
@@ -58,20 +63,18 @@ def brain_init(WIDTH, HEIGHT):
         
         neurons.append(Neuron(inputs, output))
     
-    brain = Brain()
-    brain.neurons = neurons
-    return brain
+    return Brain(neurons)
 
+@dataclass
 class GameState:
     timeLeft: int
     players: list[PartialPlayer]
     chests: list
     tileSize: int
 
-class Brain(BaseModel):
-    neurons: list["Neuron"] = []
-    def __init__(self):
-        super().__init__()
+@dataclass
+class Brain:
+    neurons: list["Neuron"]
 
 @dataclass
 class Neuron:
@@ -174,5 +177,7 @@ class GoalTile(Output):
 class Capacity(Output):
     type: Literal["capacity"]
 
-with open("truc.json", "w") as f:
-    f.write(brain_init(10, 8).model_dump_json())
+with open("../data/IA/wizard.yaml", "w") as f:
+    yaml.dump(create_new_brain(10, 8), f)
+with open("../data/IA/wizard.json", "w") as f:
+    json.dump(create_new_brain(10, 8), f)

@@ -1,0 +1,178 @@
+!!python/object:__main__.Brain
+neurons:
+- !!python/object:__main__.Neuron
+  inputs:
+  - !!python/object:__main__.PlayerDistance
+    capaState: charging
+    character: wizard
+    distance: 0.74
+    pvMin: 22
+    type: playerDistance
+  output: !!python/object:__main__.Behavior
+    behavior: bourin
+    type: behavior
+- !!python/object:__main__.Neuron
+  inputs:
+  - !!python/object:__main__.PlayerDistance
+    capaState: charging
+    character: wizard
+    distance: 2.74
+    pvMin: 49
+    type: playerDistance
+  - !!python/object:__main__.PlayerDistance
+    capaState: charging
+    character: wizard
+    distance: 0.29
+    pvMin: 20
+    type: playerDistance
+  - !!python/object:__main__.PlayerDistance
+    capaState: charging
+    character: wizard
+    distance: 3.81
+    pvMin: 10
+    type: playerDistance
+  output: !!python/object:__main__.Behavior
+    behavior: sniper
+    type: behavior
+- !!python/object:__main__.Neuron
+  inputs:
+  - !!python/object:__main__.PlayerDistance
+    capaState: ready
+    character: wizard
+    distance: 3.69
+    pvMin: 84
+    type: playerDistance
+  - !!python/object:__main__.PlayerDistance
+    capaState: ready
+    character: wizard
+    distance: 2.26
+    pvMin: 14
+    type: playerDistance
+  - !!python/object:__main__.PlayerDistance
+    capaState: charging
+    character: wizard
+    distance: 3.31
+    pvMin: 69
+    type: playerDistance
+  output: !!python/object:__main__.Behavior
+    behavior: simpleAttacker
+    type: behavior
+- !!python/object:__main__.Neuron
+  inputs:
+  - !!python/object:__main__.PlayerDistance
+    capaState: ready
+    character: wizard
+    distance: 2.88
+    pvMin: 75
+    type: playerDistance
+  output: !!python/object:__main__.Behavior
+    behavior: armorer
+    type: behavior
+- !!python/object:__main__.Neuron
+  inputs:
+  - !!python/object:__main__.PlayerDistance
+    capaState: ready
+    character: wizard
+    distance: 2.16
+    pvMin: 74
+    type: playerDistance
+  - !!python/object:__main__.PlayerDistance
+    capaState: charging
+    character: wizard
+    distance: 0.79
+    pvMin: 8
+    type: playerDistance
+  output: !!python/object:__main__.Behavior
+    behavior: coward
+    type: behavior
+- !!python/object:__main__.Neuron
+  inputs:
+  - !!python/object:__main__.PlayerDistance
+    capaState: ready
+    character: wizard
+    distance: 3.4
+    pvMin: 97
+    type: playerDistance
+  output: !!python/object:__main__.Behavior
+    behavior: simpleAttacker
+    type: behavior
+- !!python/object:__main__.Neuron
+  inputs:
+  - !!python/object:__main__.PlayerDistance
+    capaState: charging
+    character: wizard
+    distance: 3.08
+    pvMin: 25
+    type: playerDistance
+  - !!python/object:__main__.PlayerDistance
+    capaState: using
+    character: wizard
+    distance: 0.85
+    pvMin: 29
+    type: playerDistance
+  output: !!python/object:__main__.Behavior
+    behavior: bourin
+    type: behavior
+- !!python/object:__main__.Neuron
+  inputs:
+  - !!python/object:__main__.PlayerDistance
+    capaState: using
+    character: wizard
+    distance: 1.17
+    pvMin: 8
+    type: playerDistance
+  - !!python/object:__main__.PlayerDistance
+    capaState: using
+    character: wizard
+    distance: 3.38
+    pvMin: 79
+    type: playerDistance
+  - !!python/object:__main__.PlayerDistance
+    capaState: charging
+    character: wizard
+    distance: 2.08
+    pvMin: 11
+    type: playerDistance
+  output: !!python/object:__main__.Behavior
+    behavior: bourin
+    type: behavior
+- !!python/object:__main__.Neuron
+  inputs:
+  - !!python/object:__main__.PlayerDistance
+    capaState: ready
+    character: wizard
+    distance: 1.11
+    pvMin: 46
+    type: playerDistance
+  - !!python/object:__main__.PlayerDistance
+    capaState: charging
+    character: wizard
+    distance: 2.81
+    pvMin: 78
+    type: playerDistance
+  output: !!python/object:__main__.Behavior
+    behavior: collaborator
+    type: behavior
+- !!python/object:__main__.Neuron
+  inputs:
+  - !!python/object:__main__.PlayerDistance
+    capaState: using
+    character: wizard
+    distance: 0.21
+    pvMin: 23
+    type: playerDistance
+  - !!python/object:__main__.PlayerDistance
+    capaState: charging
+    character: wizard
+    distance: 3.17
+    pvMin: 26
+    type: playerDistance
+  - !!python/object:__main__.PlayerDistance
+    capaState: using
+    character: wizard
+    distance: 0.79
+    pvMin: 73
+    type: playerDistance
+  output: !!python/object:__main__.Behavior
+    behavior: bourin
+    type: behavior
