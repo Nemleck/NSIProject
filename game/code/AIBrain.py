@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import dataclasses
 import json
 from random import choice, randint
 from typing import Literal
@@ -8,34 +9,24 @@ import yaml
 from utils import manhattan_dist
 from player import PartialPlayer, AI
 
+BEHAVIORS = ["collaborator", "bourin", "sniper", "coward", "armorer", "simpleAttacker"]
+OBJECTS = ["bomb", "armor", "sword"]
+MAX_TIME = 300
+CAPA_STATES = ["charging", "using", "ready"]
+
 def load_brain(filename) -> "Brain":
-    with open("../data/IA/wizard.yaml", "r") as f:
+    with open(f"../data/IA/{filename}.yaml", "r") as f:
         brain = yaml.safe_load(f)
     return brain
 
 def create_new_brain(WIDTH, HEIGHT):
-    EX_BRAIN = [
-        {
-            "input": {
-                "type": "distance",
-                "distance": 20,
-                "character": 1
-            },
-            
-            "output": {
-                "type": "goal_tile",
-                "goal_tile": [ 0, 1 ]
-            }
-        }
-    ]
-
-    coef = 1
+    coef = 0.5
     neurons = []
     for i in range(10):
         inputs: list[Input] = []
 
         for i in range(randint(1, 3)):
-            inputType = randint(0, 0)
+            inputType = randint(0, 5)
 
             if (inputType == 0):
                 distance = randint(1, HEIGHT * 50) / 100
@@ -54,12 +45,55 @@ def create_new_brain(WIDTH, HEIGHT):
 
                 input = PlayerDistance("playerDistance", distance, pvMin, character, capaState)
             
+            elif (inputType == 1):
+                distance = randint(1, HEIGHT * 50) / 100
+
+                kind = None
+                if randint(0, (1 - coef) * 10) == 0:
+                    kind = choice(OBJECTS)
+
+                input = NearestObject("nearestObject", distance, kind)
+            
+            elif (inputType == 2):
+                input = TimeLeft("timeLeft", randint(1, MAX_TIME))
+            
+            elif (inputType == 3):
+                distance = randint(1, HEIGHT * 50) / 100
+
+                pvMin = None
+                if randint(0, (1 - coef) * 10) == 0:
+                    pvMin = randint(1, 100)
+                
+                character = None
+                if randint(0, (1 - coef) * 10) == 0:
+                    character = choice(["blob"])
+
+                input = EnemyDistance("enemyDistance", distance, pvMin, character)
+            
+            elif (inputType == 4):
+                entityType = None
+                if randint(0, (1 - coef) * 10) == 0:
+                    entityType = choice(["enemy", "player"])
+
+                input = AttackingEntity("attackingEntity", randint(0, MAX_TIME), entityType)
+            
+            else:
+                input = OwnCapacityState("ownCapacityState", choice(CAPA_STATES))
+            
             inputs.append(input)
         
-        outputType = randint(0, 0)
+        outputType = randint(0, 2)
 
         if outputType == 0:
             output = Behavior("behavior", choice(BEHAVIORS))
+        
+        elif outputType == 1:
+            relative = randint(0, 1) == 0
+
+            output = GoalTile("goalTile", relative, (0, 0))
+        
+        else:
+            output = Capacity("capacity")
         
         neurons.append(Neuron(inputs, output))
     
@@ -71,6 +105,11 @@ class GameState:
     players: list[PartialPlayer]
     chests: list
     tileSize: int
+
+@dataclass
+class InputData:
+    distance: float | None
+    pos: tuple[int, int] | None
 
 @dataclass
 class Brain:
@@ -92,8 +131,13 @@ class Neuron:
 
 @dataclass
 class Input:
-    # inverse: bool = False
-    pass
+    inputData = InputData(None, None)
+
+    def isChecked(self):
+        return False
+    
+    def getInputData(self):
+        self.inputData
 
 @dataclass
 class PlayerDistance(Input):
@@ -107,7 +151,7 @@ class PlayerDistance(Input):
 class NearestObject(Input):
     type: Literal['nearestObject']
     distance: int
-    kind: Literal["bomb", "armor", "sword"]
+    kind: Literal["bomb", "armor", "sword"] | None
 
 @dataclass
 class TimeLeft(Input):
@@ -139,6 +183,11 @@ class EnemyDistance(Input):
                         nearest = player
                         nearestDist = distance
         
+        # Update input data
+        if (nearest):
+            self.inputData.distance = distance
+            self.inputData.pos = (nearest.xpos // gameState.tileSize, nearest.ypos // gameState.tileSize)
+        
         return nearest != None
 
 @dataclass
@@ -160,8 +209,6 @@ class OwnCapacityState(Input):
 @dataclass
 class Output:
     pass
-
-BEHAVIORS = ["collaborator", "bourin", "sniper", "coward", "armorer", "simpleAttacker"]
 @dataclass
 class Behavior(Output):
     type: Literal["behavior"]
@@ -171,13 +218,16 @@ class Behavior(Output):
 class GoalTile(Output):
     type: Literal["goalTile"]
     relative: bool
-    coords: tuple[int, int]
+    coords: tuple[int, int] | Literal["inputData"]
 
 @dataclass
 class Capacity(Output):
     type: Literal["capacity"]
 
-with open("../data/IA/wizard.yaml", "w") as f:
-    yaml.dump(create_new_brain(10, 8), f)
-with open("../data/IA/wizard.json", "w") as f:
-    json.dump(create_new_brain(10, 8), f)
+def save_brains(brains, files):
+    for i in range(len(brains)):
+        with open(f"../data/IA/{files[i]}.yaml", "w") as f:
+            yaml.dump(brains[i], f)
+
+        with open(f"../data/IA/{files[i]}.json", "w") as f:
+            json.dump(dataclasses.asdict(brains[i]), f)
