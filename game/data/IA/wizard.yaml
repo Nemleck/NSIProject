@@ -2,9 +2,21 @@
 neurons:
 - !!python/object:AIBrain.Neuron
   inputs:
+  - !!python/object:AIBrain.AttackingEntity
+    entityType: player
+    maxTime: 293
+    type: attackingEntity
   - !!python/object:AIBrain.OwnCapacityState
     state: using
     type: ownCapacityState
+  output: !!python/object:AIBrain.Behavior
+    behavior: collaborator
+    type: behavior
+- !!python/object:AIBrain.Neuron
+  inputs:
+  - !!python/object:AIBrain.TimeLeft
+    maxTime: 23
+    type: timeLeft
   output: !!python/object:AIBrain.GoalTile
     coords: &id001 !!python/tuple
     - 0
@@ -13,121 +25,119 @@ neurons:
     type: goalTile
 - !!python/object:AIBrain.Neuron
   inputs:
-  - !!python/object:AIBrain.PlayerDistance
-    capaState: null
-    character: null
-    distance: 2.22
-    pvMin: null
-    type: playerDistance
-  - !!python/object:AIBrain.EnemyDistance
-    character: null
-    distance: 2.32
-    pvMin: 74
-    type: enemyDistance
-  - !!python/object:AIBrain.PlayerDistance
-    capaState: null
-    character: null
-    distance: 3.99
-    pvMin: null
-    type: playerDistance
-  output: !!python/object:AIBrain.GoalTile
-    coords: *id001
-    relative: true
-    type: goalTile
-- !!python/object:AIBrain.Neuron
-  inputs:
-  - !!python/object:AIBrain.NearestObject
-    distance: 0.01
-    kind: bomb
-    type: nearestObject
-  - !!python/object:AIBrain.AttackingEntity
-    entityType: null
-    maxTime: 84
-    type: attackingEntity
-  output: !!python/object:AIBrain.Capacity
-    type: capacity
-- !!python/object:AIBrain.Neuron
-  inputs:
-  - !!python/object:AIBrain.PlayerDistance
-    capaState: null
-    character: null
-    distance: 1.33
-    pvMin: null
-    type: playerDistance
-  output: !!python/object:AIBrain.Capacity
-    type: capacity
-- !!python/object:AIBrain.Neuron
-  inputs:
-  - !!python/object:AIBrain.AttackingEntity
-    entityType: player
-    maxTime: 10
-    type: attackingEntity
-  - !!python/object:AIBrain.AttackingEntity
-    entityType: player
-    maxTime: 63
-    type: attackingEntity
-  - !!python/object:AIBrain.AttackingEntity
-    entityType: null
-    maxTime: 209
-    type: attackingEntity
-  output: !!python/object:AIBrain.GoalTile
-    coords: *id001
-    relative: true
-    type: goalTile
-- !!python/object:AIBrain.Neuron
-  inputs:
   - !!python/object:AIBrain.OwnCapacityState
-    state: charging
+    state: using
     type: ownCapacityState
-  output: !!python/object:AIBrain.GoalTile
-    coords: *id001
-    relative: true
-    type: goalTile
-- !!python/object:AIBrain.Neuron
-  inputs:
+  - !!python/object:AIBrain.TimeLeft
+    maxTime: 16
+    type: timeLeft
   - !!python/object:AIBrain.EnemyDistance
     character: null
-    distance: 1.88
-    pvMin: 49
+    distance: 0.23
+    pvMin: null
     type: enemyDistance
+  output: !!python/object:AIBrain.Capacity
+    type: capacity
+- !!python/object:AIBrain.Neuron
+  inputs:
+  - !!python/object:AIBrain.TimeLeft
+    maxTime: 103
+    type: timeLeft
+  - !!python/object:AIBrain.AttackingEntity
+    entityType: null
+    maxTime: 16
+    type: attackingEntity
   - !!python/object:AIBrain.NearestObject
-    distance: 2.35
+    distance: 1.16
     kind: null
     type: nearestObject
-  - !!python/object:AIBrain.EnemyDistance
-    character: null
-    distance: 2.21
+  output: !!python/object:AIBrain.GoalTile
+    coords: *id001
+    relative: true
+    type: goalTile
+- !!python/object:AIBrain.Neuron
+  inputs:
+  - !!python/object:AIBrain.PlayerDistance
+    capaState: using
+    character: wizard
+    distance: 1.86
     pvMin: null
-    type: enemyDistance
+    type: playerDistance
+  - !!python/object:AIBrain.NearestObject
+    distance: 2.93
+    kind: null
+    type: nearestObject
+  output: !!python/object:AIBrain.Capacity
+    type: capacity
+- !!python/object:AIBrain.Neuron
+  inputs:
+  - !!python/object:AIBrain.TimeLeft
+    maxTime: 251
+    type: timeLeft
+  - !!python/object:AIBrain.PlayerDistance
+    capaState: null
+    character: null
+    distance: 2.98
+    pvMin: null
+    type: playerDistance
+  - !!python/object:AIBrain.OwnCapacityState
+    state: using
+    type: ownCapacityState
   output: !!python/object:AIBrain.Behavior
-    behavior: collaborator
+    behavior: sniper
     type: behavior
 - !!python/object:AIBrain.Neuron
   inputs:
+  - !!python/object:AIBrain.PlayerDistance
+    capaState: charging
+    character: null
+    distance: 0.6
+    pvMin: null
+    type: playerDistance
+  - !!python/object:AIBrain.OwnCapacityState
+    state: charging
+    type: ownCapacityState
+  - !!python/object:AIBrain.PlayerDistance
+    capaState: null
+    character: wizard
+    distance: 1.08
+    pvMin: null
+    type: playerDistance
+  output: !!python/object:AIBrain.Behavior
+    behavior: bourin
+    type: behavior
+- !!python/object:AIBrain.Neuron
+  inputs:
+  - !!python/object:AIBrain.NearestObject
+    distance: 3.77
+    kind: null
+    type: nearestObject
+  - !!python/object:AIBrain.TimeLeft
+    maxTime: 237
+    type: timeLeft
+  output: !!python/object:AIBrain.Capacity
+    type: capacity
+- !!python/object:AIBrain.Neuron
+  inputs:
   - !!python/object:AIBrain.AttackingEntity
     entityType: null
-    maxTime: 72
+    maxTime: 139
     type: attackingEntity
   output: !!python/object:AIBrain.Capacity
     type: capacity
 - !!python/object:AIBrain.Neuron
   inputs:
-  - !!python/object:AIBrain.NearestObject
-    distance: 3.01
-    kind: null
-    type: nearestObject
-  - !!python/object:AIBrain.OwnCapacityState
-    state: charging
-    type: ownCapacityState
-  output: !!python/object:AIBrain.Capacity
-    type: capacity
-- !!python/object:AIBrain.Neuron
-  inputs:
-  - !!python/object:AIBrain.EnemyDistance
-    character: null
-    distance: 2.15
-    pvMin: null
-    type: enemyDistance
+  - !!python/object:AIBrain.AttackingEntity
+    entityType: null
+    maxTime: 101
+    type: attackingEntity
+  - !!python/object:AIBrain.TimeLeft
+    maxTime: 176
+    type: timeLeft
+  - !!python/object:AIBrain.AttackingEntity
+    entityType: player
+    maxTime: 289
+    type: attackingEntity
   output: !!python/object:AIBrain.Behavior
-    behavior: coward
+    behavior: simpleAttacker
     type: behavior

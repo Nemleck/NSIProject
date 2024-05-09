@@ -114,7 +114,7 @@ class Entity(GameElement):
         
         return result, distance
 
-class Ennemy(Entity):
+class Enemy(Entity):
     def __init__(self, background, xpos, ypos, name, tileSize, animState="idle"):
         super().__init__(background, xpos, ypos, name, tileSize, animState)
 

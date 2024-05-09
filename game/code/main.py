@@ -6,8 +6,9 @@ from bgElement import BgTile, Background
 from bgGeneration import generateBackground
 from player import Player, AI
 from AI import pathfinding
+from AIBrain import create_new_brain
 from textures import init_textures, UIElement
-from gameElement import AnimatedElement, Ennemy
+from gameElement import AnimatedElement, Enemy
 
 import datetime
 
@@ -24,9 +25,9 @@ generateBackground(background, BACKGROUND_WIDTH, BACKGROUND_HEIGHT)
 FPS = 60
 
 player = Player(background, "wizard", TILES_SIZE)
-AIPer = AI(background, "wizard", TILES_SIZE)
+AIPer = AI(background, "wizard", TILES_SIZE, create_new_brain(BACKGROUND_WIDTH, BACKGROUND_HEIGHT))
 capaBar = UIElement(background, TILES_SIZE * (BACKGROUND_WIDTH - 1), TILES_SIZE * (BACKGROUND_HEIGHT - 5), "capaBar", "background", "cursor")
-EnnemyBlob = Ennemy(background, TILES_SIZE, TILES_SIZE, "blob", TILES_SIZE, "idle")
+EnnemyBlob = Enemy(background, TILES_SIZE, TILES_SIZE, "blob", TILES_SIZE, "idle")
 capaField = UIElement(background, 0, 0, "capaField", "idle", None, False, 4*TILES_SIZE, 4*TILES_SIZE)
 capaField.stickToElement(player)
 
