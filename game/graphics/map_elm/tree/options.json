@@ -1,3 +1,4 @@
 {
-    "burning": [false, "setCollide", [false]]
+    "burning": [false, "setCollide", [false], 5, null, false],
+    "sworded": [false, null, null, 3, "idle", true]
 }

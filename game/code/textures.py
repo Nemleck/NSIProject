@@ -24,8 +24,6 @@ def init_textures(tileSize):
             if not "options" in imported_textures[folder]:
                 imported_textures[folder]["options"] = {}
 
-    print(imported_textures)
-
 def get_adjusted_image(path, width, height=None):
     image = pygame.image.load(path)
 
@@ -51,7 +49,7 @@ def get_imported_texture(name: str, state: str = None):
             return imported_textures["default"]
 
 class Texture:
-    def __init__(self, texturedElement, textureName, state, loop=True, endAnimFunc=None, endAnimArgs=None, animationInterval=5):
+    def __init__(self, texturedElement, textureName, state, loop=True, endAnimFunc=None, endAnimArgs=None, animationInterval=5, autoLaunchAnimation=None, relaunchable=True):
         self.texturedElement = texturedElement
 
         self.texture = get_imported_texture(textureName, state)
@@ -68,6 +66,8 @@ class Texture:
         self.animationInterval = animationInterval
         self.currentTick = 0
         self.isFinished = False
+        self.autoLaunchAnimation = autoLaunchAnimation
+        self.relaunchable = relaunchable
 
         self.loop = loop
         self.endAnimFunc = endAnimFunc
@@ -84,19 +84,22 @@ class Texture:
             if (self.currentTick >= self.animationInterval):
                 self.currentTick = 0
 
-                if (self.loop or self.currentIndex+1 < len(self.texture)):
+                if (not self.isFinished):
                     self.currentIndex += 1
-
-                if (not self.isFinished and self.currentIndex >= len(self.texture)-1):
-                    if (self.loop and self.currentIndex >= len(self.texture)):
-                        self.currentIndex = 0
                     
-                    elif (self.endAnimFunc):
-                        if (type(self.endAnimFunc) is str):
-                            getattr(self.texturedElement, self.endAnimFunc)(*self.endAnimArgs)
+                    if self.currentIndex >= len(self.texture):
+                        if self.loop:
+                            self.currentIndex = 0
+                        
                         else:
-                            self.endAnimFunc(*self.endAnimArgs)
-                        self.isFinished = True
+                            self.isFinished = True
+                            self.currentIndex = len(self.texture) - 1
+                        
+                        if (self.endAnimFunc):
+                            if (type(self.endAnimFunc) is str):
+                                getattr(self.texturedElement, self.endAnimFunc)(*self.endAnimArgs)
+                            else:
+                                self.endAnimFunc(*self.endAnimArgs)
             
             if (not flipped):
                 return self.texture[self.currentIndex]
@@ -129,8 +132,8 @@ class UIElement:
     
     def reload(self):
         if (self.isPanel):
-            self.background.window.blit(self.animPanel.get_texture(), (self.xpos, self.ypos))
-            self.background.window.blit(self.overLayer.get_texture(), (self.xpos, self.ypos))
+            self.background.window.blit(self.animPanel.get_texture(), (self.xpos - self.background.tileSize//2, self.ypos - self.background.tileSize//2))
+            self.background.window.blit(self.overLayer.get_texture(), (self.xpos - self.background.tileSize//2, self.ypos - self.background.tileSize//2))
         else:
             x, y = self.xpos, self.ypos
             if (self.stickedElement):
@@ -144,7 +147,7 @@ class AnimationPanel:
         self.name = objName
 
         imported = get_imported_texture(objName)
-        self.textures = {}
+        self.textures: dict[str, Texture] = {}
         self.rowTextures = {}
         
         for key in imported.keys():
@@ -159,11 +162,18 @@ class AnimationPanel:
         self.currentAnim = state
     
     def get_texture(self, *args):
+        if self.textures[self.currentAnim].autoLaunchAnimation and self.textures[self.currentAnim].isFinished and not self.textures[self.currentAnim].loop:
+            self.launch_animation(self.textures[self.currentAnim].autoLaunchAnimation)
+
         return self.textures[self.currentAnim].get_texture(args)
     
     def launch_animation(self, animation):
         if (animation in self.textures.keys()):
             self.currentAnim = animation
+
+            if self.textures[self.currentAnim].relaunchable:
+                self.textures[self.currentAnim].isFinished = False
+                self.textures[self.currentAnim].currentIndex = 0
         else:
             print(f"Animation {animation} doesn't exist. here are the existing animations : {list(self.textures.keys())}")
     

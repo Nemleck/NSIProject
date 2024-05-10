@@ -33,7 +33,5 @@ for gen in range(GENERATIONS_NUM):
 
     for i in range(POPULATION_NUM - BESTS_NUM):
         brains.append(mutate(brains[i % POPULATION_NUM]))
-    
-    # print([r["total_points"] for r in result])
 
 save_brains([brains[0]], ["wizard"])

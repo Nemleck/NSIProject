@@ -40,7 +40,9 @@ class Background:
             if (self.elements[i-diff].movingTo == None):
                 diff += 1
                 
-                self.elements[i-diff].burnAround()
+                if self.elements[i-diff].name == "fireball":
+                    self.elements[i-diff].burnAround()
+                
                 del self.elements[i-diff]
 
     def pushElement(self, x, y, *elms):
@@ -48,7 +50,7 @@ class Background:
     
     def getAt(self, x, y) -> "BgTile":
         if (0 <= x < self.width and 0 <= y < self.height):
-            return self.map[x][y]
+            return self.map[int(x)][int(y)]
         else:
             return None
     
@@ -66,8 +68,11 @@ class Background:
         return result
 
     def addAnimatedElement(self, name, startPos, endPos, duration, animation="idle"):
-        self.elements.append(AnimatedElement(self, startPos[0], startPos[1], name, self.tileSize, animation))
+        elm = AnimatedElement(self, startPos[0], startPos[1], name, self.tileSize, animation)
+        self.elements.append(elm)
         self.elements[-1].move_to(endPos, duration)
+
+        return elm
 
 class BgTile:
     def __init__(self, background, type: str, collide=False, state="idle"):

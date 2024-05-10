@@ -1,0 +1,11 @@
+{
+    "capaCooldown": 15.0,
+    "mapCapaUsesWithFullBar": 20,
+    "minSpeed": 1.2,
+    "maxSpeed": 3,
+    "capaDM": 0,
+    "attackDM": 2,
+    "attackRange": 4,
+    "health": 150,
+    "autoRegen": 3
+}

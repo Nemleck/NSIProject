@@ -1,1 +1,207 @@
-{"neurons": [{"inputs": [{"type": "attackingEntity", "maxTime": 293, "entityType": "player"}, {"type": "ownCapacityState", "state": "using"}], "output": {"type": "behavior", "behavior": "collaborator"}}, {"inputs": [{"type": "timeLeft", "maxTime": 23}], "output": {"type": "goalTile", "relative": false, "coords": [0, 0]}}, {"inputs": [{"type": "ownCapacityState", "state": "using"}, {"type": "timeLeft", "maxTime": 16}, {"type": "enemyDistance", "distance": 0.23, "pvMin": null, "character": null}], "output": {"type": "capacity"}}, {"inputs": [{"type": "timeLeft", "maxTime": 103}, {"type": "attackingEntity", "maxTime": 16, "entityType": null}, {"type": "nearestObject", "distance": 1.16, "kind": null}], "output": {"type": "goalTile", "relative": true, "coords": [0, 0]}}, {"inputs": [{"type": "playerDistance", "distance": 1.86, "pvMin": null, "character": "wizard", "capaState": "using"}, {"type": "nearestObject", "distance": 2.93, "kind": null}], "output": {"type": "capacity"}}, {"inputs": [{"type": "timeLeft", "maxTime": 251}, {"type": "playerDistance", "distance": 2.98, "pvMin": null, "character": null, "capaState": null}, {"type": "ownCapacityState", "state": "using"}], "output": {"type": "behavior", "behavior": "sniper"}}, {"inputs": [{"type": "playerDistance", "distance": 0.6, "pvMin": null, "character": null, "capaState": "charging"}, {"type": "ownCapacityState", "state": "charging"}, {"type": "playerDistance", "distance": 1.08, "pvMin": null, "character": "wizard", "capaState": null}], "output": {"type": "behavior", "behavior": "bourin"}}, {"inputs": [{"type": "nearestObject", "distance": 3.77, "kind": null}, {"type": "timeLeft", "maxTime": 237}], "output": {"type": "capacity"}}, {"inputs": [{"type": "attackingEntity", "maxTime": 139, "entityType": null}], "output": {"type": "capacity"}}, {"inputs": [{"type": "attackingEntity", "maxTime": 101, "entityType": null}, {"type": "timeLeft", "maxTime": 176}, {"type": "attackingEntity", "maxTime": 289, "entityType": "player"}], "output": {"type": "behavior", "behavior": "simpleAttacker"}}]}
+{
+    "neurons": [
+        {
+            "inputs": [
+                {
+                    "type": "PlayerDistance",
+                    "distance": 10,
+                    "pvMin": 69,
+                    "character": null,
+                    "capaState": null
+                }
+            ],
+            "output": {
+                "type": "GoalTile",
+                "coords": "inputData"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "PlayerDistance",
+                    "distance": 5,
+                    "pvMin": 69,
+                    "character": null,
+                    "capaState": null
+                }
+            ],
+            "output": {
+                "type": "Capacity"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "TimeLeft",
+                    "maxTime": 92
+                },
+                {
+                    "type": "PlayerDistance",
+                    "distance": 1.18,
+                    "pvMin": 70,
+                    "character": null,
+                    "capaState": "fullBar"
+                },
+                {
+                    "type": "TimeLeft",
+                    "maxTime": 97
+                }
+            ],
+            "output": {
+                "type": "GoalTile",
+                "coords": [
+                    0,
+                    0
+                ]
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "TimeLeft",
+                    "maxTime": 35
+                },
+                {
+                    "type": "NearestObject",
+                    "distance": 0.82,
+                    "kind": null
+                }
+            ],
+            "output": {
+                "type": "SimpleKey",
+                "key": "q"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "NearestObject",
+                    "distance": 0.87,
+                    "kind": "sword"
+                }
+            ],
+            "output": {
+                "type": "GoalTile",
+                "coords": "inputData"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "PlayerDistance",
+                    "distance": 0.57,
+                    "pvMin": null,
+                    "character": null,
+                    "capaState": null
+                }
+            ],
+            "output": {
+                "type": "GoalTile",
+                "coords": [
+                    0,
+                    0
+                ]
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "PlayerDistance",
+                    "distance": 2.02,
+                    "pvMin": null,
+                    "character": null,
+                    "capaState": "charging"
+                },
+                {
+                    "type": "AttackingEntity",
+                    "maxTime": 252,
+                    "entityType": null
+                }
+            ],
+            "output": {
+                "type": "Behavior",
+                "behavior": "noBehavior"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "TimeLeft",
+                    "maxTime": 288
+                },
+                {
+                    "type": "OwnCapacityState",
+                    "state": "ready"
+                }
+            ],
+            "output": {
+                "type": "GoalTile",
+                "coords": "inputData"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "OwnCapacityState",
+                    "state": "ready"
+                },
+                {
+                    "type": "EnemyDistance",
+                    "distance": 1.5,
+                    "pvMin": null,
+                    "character": "blob"
+                }
+            ],
+            "output": {
+                "type": "Capacity"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "NearestObject",
+                    "distance": 2.38,
+                    "kind": null
+                }
+            ],
+            "output": {
+                "type": "GoalTile",
+                "coords": [
+                    0,
+                    0
+                ]
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "EnemyDistance",
+                    "distance": 1.86,
+                    "pvMin": null,
+                    "character": null
+                },
+                {
+                    "type": "PlayerDistance",
+                    "distance": 1.49,
+                    "pvMin": null,
+                    "character": "wizard",
+                    "capaState": null
+                }
+            ],
+            "output": {
+                "type": "Capacity"
+            },
+            "points": 0
+        }
+    ]
+}

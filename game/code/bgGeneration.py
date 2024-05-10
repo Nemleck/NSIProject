@@ -3,9 +3,9 @@ from random import randint
 from bgElement import Background, BgTile
 
 def generateBackground(background: "Background", WIDTH, HEIGHT):
-    # generateRiver(background, WIDTH, HEIGHT)
-    # generateElement(background, "tree", WIDTH*HEIGHT//3, WIDTH, HEIGHT)
-    generateElement(background, "decorative_flower", WIDTH//3, WIDTH, HEIGHT, False)
+    generateRiver(background, WIDTH, HEIGHT)
+    generateElement(background, "decorative_flower", WIDTH*HEIGHT//15, WIDTH, HEIGHT, False)
+    generateElement(background, "tree", WIDTH*HEIGHT//5, WIDTH, HEIGHT)
 
     for i in range(WIDTH):
         tile = background.getAt(i, HEIGHT//2)
@@ -58,6 +58,4 @@ def generateElement(background: "Background", element: "BgTile", nbr, WIDTH, HEI
         elementAt: "BgTile" = background.getAt(*randomPos)
         if (elementAt.type == "grass"):
             elementAt.setOverLayer(element, 0)
-
-            if (collide):
-                elementAt.setCollide(collide)
+            elementAt.setCollide(collide)
