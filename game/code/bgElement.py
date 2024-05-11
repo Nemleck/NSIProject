@@ -1,6 +1,6 @@
 import pygame
 from textures import Texture, AnimationPanel
-from gameElement import AnimatedElement
+from gameElement import AnimatedElement, GameObject
 
 class Background:
     def __init__(self, window, width, height, tileSize):
@@ -12,6 +12,14 @@ class Background:
 
         self.map: list[list["BgTile"]] = [[BgTile(self, "grass") for i in range(height)] for j in range(width)]
         self.elements: list["AnimatedElement"] = []
+        self.objects: list["GameObject"] = []
+    
+    def move(self, FPS, gameState):
+        for i in range(len(self.elements)):
+            self.elements[i].move(FPS, gameState)
+
+        for i in range(len(self.objects)):
+            self.objects[i].move(FPS, gameState)
 
     def reload(self):
         # Graphics
@@ -20,7 +28,7 @@ class Background:
                 if self.map[x][y]:
                     self.window.blit(self.map[x][y].animPanel.get_texture(), (self.tileSize*x, self.tileSize*y))
 
-    def reloadOverLayers(self, FPS):
+    def reloadOverLayers(self):
         # Graphics
         for x in range(len(self.map)):
             for y in range(len(self.map[x])):
@@ -31,7 +39,12 @@ class Background:
         # Animated Elements Graphics
         for i in range(len(self.elements)):
             elm = self.elements[i]
-            elm.reload(FPS)
+            elm.reload()
+
+        # Objects Graphics
+        for i in range(len(self.objects)):
+            obj = self.objects[i]
+            obj.reload()
         
         # Delete Animated Elements
         diff = 0
@@ -43,7 +56,14 @@ class Background:
                 if self.elements[i-diff].name == "fireball":
                     self.elements[i-diff].burnAround()
                 
-                del self.elements[i-diff]
+                self.elements.pop(i-diff)
+        
+        diff = 0
+        for i in range(len(self.objects)):
+            if (self.objects[i-diff].isOnGround == False):
+                diff += 1
+
+                self.objects.pop(i-diff)
 
     def pushElement(self, x, y, *elms):
         self.map[x][y] = BgTile(self, *elms)
@@ -67,12 +87,15 @@ class Background:
         
         return result
 
-    def addAnimatedElement(self, name, startPos, endPos, duration, animation="idle"):
-        elm = AnimatedElement(self, startPos[0], startPos[1], name, self.tileSize, animation)
+    def addAnimatedElement(self, name, startPos, endPos, duration, invoker, animation="idle", DM=0, opacityGrowth=0):
+        elm = AnimatedElement(self, startPos[0], startPos[1], name, self.tileSize, invoker, animation, DM, opacityGrowth)
         self.elements.append(elm)
-        self.elements[-1].move_to(endPos, duration)
+        self.elements[-1].move_to(endPos, duration, self.tileSize)
 
         return elm
+
+    def summonObject(self, name, pos, animState="idle"):
+        self.objects.append(GameObject(self, pos[0], pos[1], name, self.tileSize, animState))
 
 class BgTile:
     def __init__(self, background, type: str, collide=False, state="idle"):
@@ -84,8 +107,8 @@ class BgTile:
 
         self.animPanel = AnimationPanel(self, type, state)
     
-    def setOverLayer(self, name: str = None, overLayerRotation: int = 0):
-        self.overLayer = AnimationPanel(self, name)
+    def setOverLayer(self, name: str = None, overLayerRotation: int = 0, state="idle"):
+        self.overLayer = AnimationPanel(self, name, state)
         self.overLayer.set_rotation(overLayerRotation)
     
     def setCollide(self, collide):

@@ -1,11 +1,12 @@
 import pygame
-from random import randint
+from random import choice, randint
 from bgElement import Background, BgTile
 
 def generateBackground(background: "Background", WIDTH, HEIGHT):
     generateRiver(background, WIDTH, HEIGHT)
     generateElement(background, "decorative_flower", WIDTH*HEIGHT//15, WIDTH, HEIGHT, False)
     generateElement(background, "tree", WIDTH*HEIGHT//5, WIDTH, HEIGHT)
+    generateElement(background, "rock", WIDTH//3, WIDTH, HEIGHT, True, choice(["idle", "several"]))
 
     for i in range(WIDTH):
         tile = background.getAt(i, HEIGHT//2)
@@ -51,11 +52,11 @@ def generateRiver(background: "Background", WIDTH, HEIGHT):
         if pos[1]+1 < HEIGHT and background.map[pos[0]][pos[1]+1].type == "grass":
             background.map[pos[0]][pos[1]].setOverLayer("grassOverLayer", 2)
 
-def generateElement(background: "Background", element: "BgTile", nbr, WIDTH, HEIGHT, collide=True):
+def generateElement(background: "Background", element: "BgTile", nbr, WIDTH, HEIGHT, collide=True, state="idle"):
     for i in range(nbr):
         randomPos = ( randint(0, WIDTH-1), randint(0, HEIGHT-1) )
 
         elementAt: "BgTile" = background.getAt(*randomPos)
         if (elementAt.type == "grass"):
-            elementAt.setOverLayer(element, 0)
+            elementAt.setOverLayer(element, 0, state)
             elementAt.setCollide(collide)

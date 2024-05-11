@@ -36,11 +36,17 @@ def teleportToRandom(background, entity):
             if i > 100:
                 raise ValueError("Couldn't find any tile not colliding")
 
-def getProjectileEndPoint(A, B, radius): # A is the entity pos, B the mouse pos
+def getProjectileEndPointAndAngle(A, B, radius, tileSize): # A is the entity pos, B the mouse pos
     # Searching B point
 
     AB = math.sqrt( ( B[0] - A[0] )**2 + ( B[1] - A[1] )**2 )
     xDiff = ( ( B[0] - A[0] ) * radius ) / AB # Thales's theorem
     yDiff = ( ( B[1] - A[1] ) * radius ) / AB
 
-    return ( A[0] + xDiff, A[1] + yDiff )
+    trigoX = xDiff / radius
+    angle = math.degrees(math.acos(trigoX))
+
+    if yDiff > 0: # math.acos return angle between 0 and pi, not -pi and pi
+        angle = 360 - angle
+
+    return ( A[0] + xDiff*tileSize, A[1] + yDiff*tileSize ), angle

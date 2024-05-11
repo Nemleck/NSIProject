@@ -1,3 +1,4 @@
+import json
 import pygame
 from AI import pathfinding
 from textures import Texture, AnimationPanel
@@ -26,19 +27,27 @@ class GameElement:
         self.background.window.blit(self.animPanel.get_texture(), (self.xpos - self.background.tileSize//2, self.ypos - self.background.tileSize//2))
 
 class AnimatedElement(GameElement):
-    def __init__(self, background, xpos, ypos, name, tileSize, state="idle"):
+    def __init__(self, background, xpos, ypos, name, tileSize, invoker, state="idle", DM=0, opacityGrowth=0):
         super().__init__(background, xpos, ypos, name, tileSize, state)
 
         self.movingTo = None
         self.timeLeft = 0
         self.animDuration = 0
+        self.DM = DM
+        self.invoker = invoker
+        self.touching = []
+
+        self.opacityGrowth = opacityGrowth
+        self.currentOpacity = 100
     
-    def move_to(self, pos, duration):
+    def move_to(self, pos, speed, tileSize):
         self.movingTo = pos
-        self.timeLeft = duration
-        self.speed = duration
+        self.timeLeft = math.sqrt(( pos[0] - self.xpos )**2 + ( pos[1] - self.ypos )**2) / ( speed * tileSize )
+        self.speed = speed
     
-    def reload(self, FPS):
+    def move(self, FPS, gameState):
+        self.currentOpacity += self.opacityGrowth/FPS
+
         if (self.movingTo):
             self.xpos += ( self.movingTo[0] - self.xpos ) / ( self.timeLeft * FPS )
             self.ypos += ( self.movingTo[1] - self.ypos ) / ( self.timeLeft * FPS )
@@ -46,6 +55,27 @@ class AnimatedElement(GameElement):
             self.timeLeft -= 1/FPS
             if (self.timeLeft <= 0):
                 self.movingTo = None
+        
+        tile = self.background.getAt(self.xpos // gameState.tileSize, self.ypos // gameState.tileSize)
+        if not tile or tile.collide:
+            self.movingTo = None
+            
+            if tile and tile.overLayer:
+                tile.overLayer.launch_animation("sworded")
+        
+        if self.movingTo:
+            for entity in gameState.getAllEntities():
+                if self.invoker != entity and manhattan_dist(gameState.tileSize, self, entity) < 1:
+                    if not entity in self.touching:
+                        self.touching.append(entity)
+                        entity.hurt(self.DM, self)
+
+                elif entity in self.touching:
+                    self.touching.remove(entity)
+
+    def reload(self):
+        if self.opacityGrowth > 0:
+            self.animPanel.set_opacity(self.currentOpacity)
         
         super().reload()
 
@@ -94,8 +124,14 @@ class Entity(GameElement):
         if self.health <= 0:
             self.health = 0
             self.dead = True
+    
+    def regenerate(self, amount):
+        self.health += amount
+        
+        if self.health > self.maxHealth:
+            self.health = self.maxHealth
 
-    def reload(self, FPS):
+    def reload(self):
         if not self.dead:
             # Reload health bar
 
@@ -177,13 +213,23 @@ class Enemy(Entity):
     def __init__(self, background, xpos, ypos, name, tileSize, animState="idle"):
         super().__init__(background, xpos, ypos, name, tileSize, animState)
 
+        with open(f"./data/enemies/{name}.json", "r") as f:
+            data = json.load(f)
+
         self.path = []
         self.distance = 0
-        self.targetDistance = 10
-        self.health = 50
 
-        self.maxAttackCooldown = 3
-        self.currAttackCooldown = 3
+        self.detectionRange = 10
+        self.health = data["health"]
+        self.maxHealth = self.health
+        self.autoRegen = data["autoRegen"]
+
+        self.maxAttackCooldown = data["attackCooldown"]
+        self.currAttackCooldown = self.maxAttackCooldown
+        self.attackValue = data["attackDM"]
+
+        self.minSpeed = data["minSpeed"]
+        self.maxSpeed = data["maxSpeed"]
     
     def move(self, FPS, gameState):
         # Attack
@@ -207,7 +253,7 @@ class Enemy(Entity):
 
         for player in gameState.players:
             playerPos = (player.xpos // self.tileSize, player.ypos // self.tileSize)
-            if (abs(selfPos[0] - playerPos[0]) + abs(selfPos[0] - playerPos[0]) <= self.targetDistance):
+            if (abs(selfPos[0] - playerPos[0]) + abs(selfPos[0] - playerPos[0]) <= self.detectionRange):
                 if (len(self.path) == 0):
                     self.path = pathfinding(self.background, selfPos, playerPos)
                 
@@ -220,3 +266,24 @@ class Enemy(Entity):
                     }, gameState)
 
                     self.distance += result[0] + result[1]
+
+class GameObject(GameElement):
+    def __init__(self, background, xpos, ypos, name, tileSize, animState="idle"):
+        super().__init__(background, (xpos+0.5)*tileSize, (ypos+0.5)*tileSize, name, tileSize, animState)
+
+        self.isOnGround = True
+
+    def move(self, FPS: float, gameState):
+        if self.isOnGround:
+            for player in gameState.players:
+                if manhattan_dist(gameState.tileSize, self, player) < 1:
+                    self.isOnGround = False
+                    
+                    # Touches the object
+
+                    if self.name == "heart":
+                        player.regenerate(50)
+    
+    def reload(self):
+        if self.isOnGround:
+            super().reload()

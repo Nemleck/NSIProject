@@ -8,17 +8,27 @@ def init_textures(tileSize):
     for root_folder in ["map_elm", "characters", "UI", "projectiles"]:
         for folder in os.listdir(r"./graphics/" + root_folder):
             imported_textures[folder] = {}
+            
             for file in os.listdir(rf"./graphics/{root_folder}/{folder}"):
                 if ("." in file):
                     if (not file.endswith(".json")):
-                        imported_textures[folder][file.split(".")[0]] = get_adjusted_image(fr"./graphics/{root_folder}/{folder}/{file}", tileSize)
+                        # TODO : Find a better way to do this... (in Options ?)
+                        if root_folder != "UI":
+                            imported_textures[folder][file.split(".")[0]] = get_adjusted_image(fr"./graphics/{root_folder}/{folder}/{file}", tileSize)
+                        else:
+                            imported_textures[folder][file.split(".")[0]] = pygame.image.load(fr"./graphics/{root_folder}/{folder}/{file}")
                     else:
                         with open(rf"./graphics/{root_folder}/{folder}/{file}") as f:
                             imported_textures[folder]["options"] = json.load(f)
+
                 else:
                     animTextures = []
                     for animTexture in sorted(os.listdir(fr"./graphics/{root_folder}/{folder}/{file}")):
-                        animTextures.append(get_adjusted_image(fr"./graphics/{root_folder}/{folder}/{file}/{animTexture}", tileSize))
+                        if root_folder != "UI":
+                            animTextures.append(get_adjusted_image(fr"./graphics/{root_folder}/{folder}/{file}/{animTexture}", tileSize))
+                        else:
+                            animTextures.append(pygame.image.load(fr"./graphics/{root_folder}/{folder}/{file}/{animTexture}"))
+
                     imported_textures[folder][file] = animTextures
             
             if not "options" in imported_textures[folder]:
@@ -27,10 +37,14 @@ def init_textures(tileSize):
 def get_adjusted_image(path, width, height=None):
     image = pygame.image.load(path)
 
-    if height == None:
+    if height == None or width == None:
         imageRect = image.get_rect()
         imageWidth, imageHeight = imageRect.width, imageRect.height
-        height = width * imageHeight / imageWidth
+        
+        if height == None:
+            height = width * imageHeight / imageWidth
+        elif width == None:
+            width = height * imageWidth / imageHeight
 
     return pygame.transform.scale(image, (width, height))
 
@@ -175,7 +189,8 @@ class AnimationPanel:
                 self.textures[self.currentAnim].isFinished = False
                 self.textures[self.currentAnim].currentIndex = 0
         else:
-            print(f"Animation {animation} doesn't exist. here are the existing animations : {list(self.textures.keys())}")
+            pass
+            # print(f"Animation {animation} doesn't exist. here are the existing animations : {list(self.textures.keys())}")
     
     def get_animation(self):
         return self.currentAnim
@@ -208,3 +223,11 @@ class AnimationPanel:
                     elm = pygame.transform.flip(elm, x, y)
             else:
                 self.textures[key].texture = pygame.transform.flip(self.textures[key].texture, x, y)
+
+    def set_opacity(self, alpha=255):
+        for key in self.textures.keys():
+            if type(self.textures[key].texture) is list:
+                for elm in self.textures[key].texture:
+                    elm.fill((255, 255, 255, alpha), None, pygame.BLEND_RGBA_MULT)
+            else:
+                self.textures[key].texture.fill((255, 255, 255, alpha), None, pygame.BLEND_RGBA_MULT)

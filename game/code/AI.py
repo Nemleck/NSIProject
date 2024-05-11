@@ -1,5 +1,9 @@
+import datetime
+
 def pathfinding(background, start_pos, end_pos):
     # A* algorithm
+
+    # time = datetime.datetime.now().timestamp()
 
     start_pos = (int(start_pos[0]), int(start_pos[1]))
     end_pos = (int(end_pos[0]), int(end_pos[1]))
@@ -49,7 +53,10 @@ def pathfinding(background, start_pos, end_pos):
             
         i += 1
         if i > 500:
+            # print(datetime.datetime.now().timestamp() - time, "didn't find")
             return []
+    
+    # print(datetime.datetime.now().timestamp() - time)
     
     result.reverse()
     return result

@@ -99,7 +99,7 @@ def create_new_brain(WIDTH, HEIGHT):
             
             inputs.append(input)
         
-        outputType = randint(0, 3)
+        outputType = randint(0, 4)
 
         if outputType == 0:
             output = Behavior("Behavior", choice(BEHAVIORS))
@@ -113,6 +113,9 @@ def create_new_brain(WIDTH, HEIGHT):
         
         elif outputType == 2:
             output = Capacity("Capacity")
+        
+        elif outputType == 3:
+            output = Attack("Attack")
         
         else:
             output = SimpleKey("SimpleKey", choice(KEYS))
@@ -314,11 +317,18 @@ class Capacity(Output):
 
     def performAction(self, inputData, selfAI: AI):
         selfAI.enableKey("capacity")
+
+@dataclass
+class Attack(Output):
+    type: Literal["attack"]
+
+    def performAction(self, inputData: InputData, selfAI: AI):
+        selfAI.enableKey("attack")
         
 @dataclass
 class SimpleKey(Output):
     type: Literal["SimpleKey"]
-    key: Literal["z", "s", "q", "d", "capacity"]
+    key: Literal["z", "s", "q", "d", "capacity", "attack"]
 
     def performAction(self, inputData: InputData, selfAI: AI):
         selfAI.enableKey(self.key)

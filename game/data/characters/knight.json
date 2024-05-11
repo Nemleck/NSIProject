@@ -1,5 +1,6 @@
 {
     "capaCooldown": 8.0,
+    "capaDuration": 0,
     "mapCapaUsesWithFullBar": 8,
     "minSpeed": 0.75,
     "maxSpeed": 1.5,

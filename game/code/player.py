@@ -1,8 +1,8 @@
 import json
 import pygame, keyboard
 from bgElement import Background
-from utils import getProjectileEndPoint
-from textures import Texture, AnimationPanel
+from utils import getProjectileEndPointAndAngle
+from textures import Texture, AnimationPanel, UIElement
 from gameElement import Entity
 from AI import *
 
@@ -19,6 +19,9 @@ class PartialPlayer(Entity):
         self.capaMaxCooldown = data["capaCooldown"]
         self.capaCurrCooldown = self.capaMaxCooldown
         self.capaClicking = False
+        self.capaUsing = False
+        self.capaDuration = data["capaDuration"]
+        self.capaTimeLeft = 0
         self.mapCapaUsesWithFullBar = data["mapCapaUsesWithFullBar"]
 
         self.minSpeed = data["minSpeed"]
@@ -31,12 +34,29 @@ class PartialPlayer(Entity):
         self.maxHealth = data["health"]
         self.health = self.maxHealth
         self.autoRegen = data["autoRegen"]
+        self.protectedTime = 0
 
         self.mousePos = (0, 0)
 
         self.walkingSurface = Texture(self, self.character, "walk")
 
+        self.capaField = UIElement(background, 0, 0, "capaField", "idle", None, False, (2*self.attackRange+1)*tileSize, (2*self.attackRange+1)*tileSize)
+        self.protectionField = UIElement(background, 0, 0, "capaField", "protection", None, False, (2*self.attackRange+1)*tileSize, (2*self.attackRange+1)*tileSize)
+        self.capaField.stickToElement(self)
+        self.protectionField.stickToElement(self)
+
     def move(self, FPS, is_pressed, gameState):
+        # Protection
+
+        if self.protectedTime > 0:
+            self.protectedTime -= 1/FPS
+
+        # Capa Bar
+
+        self.capaCurrCooldown += 1/FPS
+        if (self.capaCurrCooldown > self.capaMaxCooldown):
+            self.capaCurrCooldown = self.capaMaxCooldown
+
         if (not self.moving):
             self.currentDirection = None
         
@@ -60,31 +80,51 @@ class PartialPlayer(Entity):
                     self.capaCurrCooldown = 0
                 
                 if (self.character == "wizard"):
-                    self.background.addAnimatedElement("fireball", (self.xpos, self.ypos), self.mousePos, 1, "idle")
+                    self.background.addAnimatedElement("fireball", (self.xpos, self.ypos), self.mousePos, 5, self, "idle", self.capaDM)
                 
                 elif (self.character == "knight"):
                     self.animPanel.launch_animation("attack")
 
                     self.attackAround(gameState)
                     self.swordedTreesAnimation()
-
+                
                 elif (self.character == "fletcher"):
-                    endPos = getProjectileEndPoint()
-                    self.background.addAnimatedElement("arrow", (self.xpos, self.ypos), self.mousePos, 1, "idle")
+                    self.capaUsing = True
+                    self.capaTimeLeft = self.capaDuration
+
         else:
             self.capaClicking = False
+            
+        if is_pressed["attack"]:
+            if not self.attackClicking:
+                self.attackClicking = True
+
+                if (self.character == "wizard"):
+                    endPos, angle = getProjectileEndPointAndAngle((self.xpos, self.ypos), self.mousePos, self.attackRange, self.tileSize)
+                    animatedElement = self.background.addAnimatedElement("magicBlast", (self.xpos, self.ypos), endPos, 10, self, "idle", self.attackDM, 255)
+                    animatedElement.animPanel.set_rotation(angle / 90)
+
+                elif (self.character == "fletcher"):
+                    endPos, angle = getProjectileEndPointAndAngle((self.xpos, self.ypos), self.mousePos, self.attackRange, self.tileSize)
+                    animatedElement = self.background.addAnimatedElement("arrow", (self.xpos, self.ypos), endPos, 10, self, "idle", self.attackDM)
+                    animatedElement.animPanel.set_rotation(angle / 90)
+        
+        else:
+            self.attackClicking = False
+
+        if self.capaUsing:
+            self.capaTimeLeft -= 1/FPS
+
+            if self.capaTimeLeft <= 0:
+                self.capaUsing = False
+                self.capaTimeLeft = 0
         
         return result, distance
 
-    def reload(self, FPS):
+    def reload(self):
         if not self.dead:
-            # Capa Bar
-
-            self.capaCurrCooldown += 1/FPS
-            if (self.capaCurrCooldown > self.capaMaxCooldown):
-                self.capaCurrCooldown = self.capaMaxCooldown
-
             # Health Bar
+
             self.background.window.blit(self.healthBar.get_texture(), (self.xpos - self.tileSize//2, self.ypos - self.tileSize))
 
             # Graphics
@@ -106,8 +146,9 @@ class PartialPlayer(Entity):
 class Player(PartialPlayer):
     def move(self, FPS, gameState):
         space = keyboard.is_pressed("space")
+        attack = pygame.mouse.get_pressed()[0]
 
-        if space:
+        if space or attack:
             self.mousePos = pygame.mouse.get_pos()
 
         super().move(FPS, {
@@ -115,7 +156,7 @@ class Player(PartialPlayer):
             "q": keyboard.is_pressed("q"),
             "z": keyboard.is_pressed("z"),
             "s": keyboard.is_pressed("s"),
-            "attack": pygame.mouse.get_pressed() == 3,
+            "attack": attack,
             "capacity": space
         }, gameState)
 
