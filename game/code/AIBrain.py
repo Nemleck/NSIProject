@@ -8,7 +8,7 @@ from typing import Literal
 import yaml
 
 from gameElement import Enemy
-from utils import manhattan_dist
+from utils import getAngleFromEntities, getMousePosFromAngle, manhattan_dist
 from player import PartialPlayer, AI
 
 BEHAVIORS = ["noBehavior", "collaborator", "bourin", "sniper", "coward", "armorer", "simpleAttacker"]
@@ -42,8 +42,8 @@ def create_new_brain(WIDTH, HEIGHT):
     for i in range(10):
         inputs: list[Input] = []
 
-        for i in range(randint(1, 3)):
-            inputType = randint(0, 5)
+        for j in range(randint(1, 3)):
+            inputType = randint(0, 6)
 
             if (inputType == 0):
                 distance = randint(1, HEIGHT * 50) / 100
@@ -72,7 +72,10 @@ def create_new_brain(WIDTH, HEIGHT):
                 input = NearestObject("NearestObject", distance, kind)
             
             elif (inputType == 2):
-                input = TimeLeft("TimeLeft", randint(1, MAX_TIME))
+                minTime = randint(0, MAX_TIME-1)
+                maxTime = randint(minTime, MAX_TIME)
+
+                input = TimeLeft("TimeLeft", maxTime, minTime)
             
             elif (inputType == 3):
                 distance = randint(1, HEIGHT * 50) / 100
@@ -94,8 +97,11 @@ def create_new_brain(WIDTH, HEIGHT):
 
                 input = AttackingEntity("AttackingEntity", randint(0, MAX_TIME), entityType)
             
-            else:
+            elif (inputType == 5):
                 input = OwnCapacityState("OwnCapacityState", choice(CAPA_STATES))
+            
+            else:
+                input = OwnHealthPercentage("OwnHealthPercentage", randint(0, 100), randint(0, 100))
             
             inputs.append(input)
         
@@ -109,7 +115,7 @@ def create_new_brain(WIDTH, HEIGHT):
             if randint(0, 1) == 0:
                 goal = "inputData"
 
-            output = GoalTile("GoalTile", goal)
+            output = GoalTile("GoalTile", goal, randint(0, 2) != 0)
         
         elif outputType == 2:
             output = Capacity("Capacity")
@@ -125,7 +131,7 @@ def create_new_brain(WIDTH, HEIGHT):
     return Brain(neurons)
 
 def mixInputDatas(inputDatas):
-    result = InputData(0, 0)
+    result = InputData(0, 0, 0)
     
     for inputData in inputDatas:
         attrs = inputData.__dict__
@@ -140,7 +146,7 @@ class GameState:
     timeLeft: int
     players: list[PartialPlayer]
     enemies: list[Enemy]
-    chests: list
+    objects: list
     tileSize: int
 
     def getAllEntities(self):
@@ -149,6 +155,7 @@ class GameState:
 @dataclass
 class InputData:
     distance: float | None
+    angle: float | None
     pos: tuple[int, int] | None
 
 @dataclass
@@ -177,7 +184,7 @@ class Neuron:
 
 @dataclass
 class Input:
-    inputData = InputData(None, None)
+    inputData = InputData(None, None, None)
 
     def isChecked(self, gameState, selfAI):
         return False
@@ -199,12 +206,13 @@ class PlayerDistance(Input):
         for player in gameState.players:
             if player != selfAI:
                 distance = manhattan_dist(gameState.tileSize, player, selfAI)
-                if ( not nearest and distance < self.distance ) or ( distance <= nearestDist ):
+                if ( not nearest and distance <= self.distance ) or ( distance <= nearestDist ):
 
                     # Check optionnal values
                     if  ( self.pvMin == None or ( player.health < self.pvMin ) ) and\
                         ( self.character == None or ( player.character == self.character ) ):
                         
+                        angle = getAngleFromEntities(selfAI, player)
                         nearest = player
                         nearestDist = distance
         
@@ -212,6 +220,7 @@ class PlayerDistance(Input):
         if (nearest):
             self.inputData.distance = distance
             self.inputData.pos = (nearest.xpos // gameState.tileSize, nearest.ypos // gameState.tileSize)
+            self.inputData.angle = angle
         
         return nearest != None
 
@@ -221,13 +230,36 @@ class NearestObject(Input):
     distance: int
     kind: Literal["bomb", "armor", "sword"] | None
 
+    def isChecked(self, gameState, selfAI):
+        nearest = None
+        nearestDist = 0
+
+        for obj in gameState.objects:
+            distance = manhattan_dist(gameState.tileSize, obj, selfAI)
+            if distance < self.distance:
+                if ( not nearest and distance < self.distance ) or ( distance <= nearestDist ):
+                    # Optionnal values
+                    if ( not self.kind or obj.name == self.kind ):
+                        angle = getAngleFromEntities(selfAI, obj)
+                        nearest = obj
+                        nearestDist = distance
+        
+        # Input data
+        if nearest:
+            self.inputData.distance = distance
+            self.inputData.pos = (nearest.xpos // gameState.tileSize, nearest.ypos // gameState.tileSize)
+            self.inputData.angle = angle
+        
+        return nearest != None
+
 @dataclass
 class TimeLeft(Input):
     type: Literal['TimeLeft']
-    maxTime: int
+    maxTime: int | None
+    minTime: int | None
 
     def isChecked(self, gameState: GameState, selfAI: AI):
-        return gameState.timeLeft <= self.maxTime
+        return ( self.minTime == None or gameState.timeLeft >= self.minTime ) and ( self.maxTime == None or gameState.timeLeft <= self.maxTime )
 
 @dataclass
 class EnemyDistance(Input):
@@ -249,11 +281,13 @@ class EnemyDistance(Input):
                     
                     nearest = enemy
                     nearestDist = distance
+                    angle = getAngleFromEntities(selfAI, enemy)
         
         # Update input data
         if (nearest):
             self.inputData.distance = distance
             self.inputData.pos = (nearest.xpos // gameState.tileSize, nearest.ypos // gameState.tileSize)
+            self.inputData.angle = angle
         
         return nearest != None
 
@@ -278,11 +312,21 @@ class OwnCapacityState(Input):
         if self.state == "charging":
             return selfAI.capaCurrCooldown < selfAI.capaMaxCooldown / selfAI.mapCapaUsesWithFullBar
         elif self.state == "using":
-            return selfAI.capaClicking
+            return selfAI.capaUsing
         elif self.state == "ready":
             return selfAI.capaCurrCooldown >= selfAI.capaMaxCooldown / selfAI.mapCapaUsesWithFullBar
         else:
             return selfAI.capaCurrCooldown >= selfAI.capaMaxCooldown
+
+@dataclass
+class OwnHealthPercentage(Input):
+    type: Literal["OwnHealthPercentage"]
+    minPercentage: int | None
+    maxPercentage: int | None
+
+    def isChecked(self, gameState, selfAI):
+        ratio = ( selfAI.health / selfAI.maxHealth ) * 100
+        return ( self.minPercentage == None or ratio >= self.minPercentage ) and ( self.maxPercentage == None or ratio <= self.maxPercentage )
 
 @dataclass
 class Output:
@@ -301,15 +345,16 @@ class Behavior(Output):
 class GoalTile(Output):
     type: Literal["GoalTile"]
     coords: tuple[int, int] | Literal["inputData"]
+    reversed: bool
     
     def performAction(self, inputData: InputData, selfAI: AI):
         if self.coords == "inputData":
             if inputData.pos:
-                selfAI.setGoalTile(inputData.pos)
+                selfAI.setGoalTile(inputData.pos, self.reversed)
             else:
                 print("no inputData")
         else:
-            selfAI.setGoalTile(self.coords)
+            selfAI.setGoalTile(self.coords, self.reversed)
 
 @dataclass
 class Capacity(Output):
@@ -318,13 +363,18 @@ class Capacity(Output):
     def performAction(self, inputData, selfAI: AI):
         selfAI.enableKey("capacity")
 
+        if inputData.angle:
+            selfAI.mousePos = getMousePosFromAngle((selfAI.xpos, selfAI.ypos), inputData.angle)
+
 @dataclass
 class Attack(Output):
-    type: Literal["attack"]
+    type: Literal["Attack"]
 
     def performAction(self, inputData: InputData, selfAI: AI):
         selfAI.enableKey("attack")
-        
+        print(inputData.angle)
+        if inputData.angle:
+            selfAI.mousePos = getMousePosFromAngle((selfAI.xpos, selfAI.ypos), inputData.angle)
 @dataclass
 class SimpleKey(Output):
     type: Literal["SimpleKey"]

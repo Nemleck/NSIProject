@@ -57,7 +57,7 @@ class AnimatedElement(GameElement):
                 self.movingTo = None
         
         tile = self.background.getAt(self.xpos // gameState.tileSize, self.ypos // gameState.tileSize)
-        if not tile or tile.collide:
+        if not tile or not tile.isTraversable(self.invoker.zIndex):
             self.movingTo = None
             
             if tile and tile.overLayer:
@@ -68,7 +68,7 @@ class AnimatedElement(GameElement):
                 if self.invoker != entity and manhattan_dist(gameState.tileSize, self, entity) < 1:
                     if not entity in self.touching:
                         self.touching.append(entity)
-                        entity.hurt(self.DM, self)
+                        entity.hurt(self.DM, self.invoker)
 
                 elif entity in self.touching:
                     self.touching.remove(entity)
@@ -80,7 +80,7 @@ class AnimatedElement(GameElement):
         super().reload()
 
 class Entity(GameElement):
-    def __init__(self, background, xpos, ypos, name, tileSize, animState="idle"):
+    def __init__(self, background, xpos, ypos, name, tileSize, animState="idle", zIndex=0):
         super().__init__(background, xpos, ypos, name, tileSize, animState)
     
         self.minSpeed = 1
@@ -90,6 +90,16 @@ class Entity(GameElement):
         self.timeSinceNoMove = 0
         self.currentDirection = None
         self.lastDirection = "d"
+
+        # Stats
+
+        self.points = 0
+        self.killedEnemies = 0
+        self.killedPlayers = 0
+        self.usedCapaTimes = 0
+        self.pickedObjects = 0
+
+        self.zIndex = zIndex
 
         self.attackRange = 1
         self.attackValue = 3
@@ -124,6 +134,16 @@ class Entity(GameElement):
         if self.health <= 0:
             self.health = 0
             self.dead = True
+
+            # Stats
+            attacker.points += 10
+            
+            if issubclass(self.__class__, Enemy):
+                attacker.killedEnemies += 1
+            else:
+                attacker.killedPlayers += 1
+        
+        return self.dead
     
     def regenerate(self, amount):
         self.health += amount
@@ -191,7 +211,7 @@ class Entity(GameElement):
                 
                 distance[0] += abs(goalDiff[0] * dist)
                 distance[1] += abs(goalDiff[1] * dist)
-                if (goalTile and not goalTile.collide):
+                if (goalTile and not goalTile.doesCollide(self.zIndex)):
                     self.moving = True
 
                     if self.animPanel.get_animation() == "sleep":
@@ -216,7 +236,7 @@ class Enemy(Entity):
         with open(f"./data/enemies/{name}.json", "r") as f:
             data = json.load(f)
         
-        self.walkingPanel = AnimationPanel(self, "livingTree", "walk")
+        self.walkingPanel = AnimationPanel(self, name, "walk")
         self.walking = False
 
         self.path = []
@@ -298,6 +318,8 @@ class GameObject(GameElement):
 
                     if self.name == "heart":
                         player.regenerate(50)
+                        player.pickedObjects += 1
+                        player.points += 3
     
     def reload(self):
         if self.isOnGround:

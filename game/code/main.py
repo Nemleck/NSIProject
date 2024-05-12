@@ -21,6 +21,7 @@ TILES_SIZE = 50
 BACKGROUND_HEIGHT = int(display_info.current_h // TILES_SIZE) - 2
 BACKGROUND_WIDTH = int(display_info.current_w // TILES_SIZE) - 1
 GAME_DURATION = 180 # seconds
+GRAPHIC_MODE = True
 
 # HEIGHT 18
 # WIDTH 30
@@ -35,17 +36,15 @@ FPS = 60
 newFPS = 60
 
 player = Player(background, "wizard", TILES_SIZE)
-# AIPer = AI(background, "wizard", TILES_SIZE, load_brain("wizard"))
-capaBar = UIElement(background, TILES_SIZE * (BACKGROUND_WIDTH - 1), TILES_SIZE * (BACKGROUND_HEIGHT - 5), "capaBar", "background", "cursor")
-EnnemyBlob = Enemy(background, TILES_SIZE, TILES_SIZE, "blob", TILES_SIZE, "idle")
-
-EnnemyBats = [Enemy(background, TILES_SIZE, TILES_SIZE, "livingTree", TILES_SIZE, "idle") for i in range(5)]
+capaBar = UIElement(background, TILES_SIZE * (BACKGROUND_WIDTH - 1), TILES_SIZE * (BACKGROUND_HEIGHT - 5), "capaBar", "background", "cursor", TILES_SIZE, 5*TILES_SIZE)
 
 AIS = [
-    AI(background, choice(["wizard", "fletcher", "knight"]), TILES_SIZE, load_brain("wizard")) for i in range(10)
+    AI(background, choice(["wizard", "fletcher", "knight"]), TILES_SIZE, load_brain("wizard")) for i in range(1)
 ]
 
-gameState = GameState(GAME_DURATION, AIS + [player], [EnnemyBlob] + EnnemyBats, background.objects, TILES_SIZE)
+endScreen = UIElement(background, 0, 0, "endScreen", "idle", None, TILES_SIZE*BACKGROUND_WIDTH, TILES_SIZE*BACKGROUND_HEIGHT)
+
+gameState = GameState(GAME_DURATION, AIS + [player], background.ennemies, background.objects, TILES_SIZE)
 
 for entity in gameState.getAllEntities():
     teleportToRandom(background, entity)
@@ -66,12 +65,24 @@ def global_reload():
 
     capaBar.reload()
     capaBar.cropOverLayer((1 - (player.capaCurrCooldown / player.capaMaxCooldown )) * 5 * TILES_SIZE)
-    
-    background.window.blit(text_surface, (0, 0))
+
+    if gameState.timeLeft < 0:
+        endScreen.reload()
+
+        background.window.blit(end_of_game_surface, end_of_game_pos)
+        
+        for i in range(len(texts)):
+            background.window.blit(stats_surfaces[i], stats_pos[i])
+    else:
+        text_surface = font.render(str(round(gameState.timeLeft)), False, (0, 0, 0))
+        background.window.blit(text_surface, (0, 0))
+
 
     pygame.display.flip()
 
 font = pygame.font.SysFont('Comic Sans MS', 30)
+
+rendered_final_texts = False
 
 stop = False
 pathF = []
@@ -84,27 +95,33 @@ while not stop:
 
     diff1 = datetime.datetime.now().timestamp() - time
 
-    diffs = [diff1]
-    global_diff = 0
-    for entity in gameState.getAllEntities():
-        entity.move(newFPS, gameState)
-        
-        currDiffs = datetime.datetime.now().timestamp() - ( time + global_diff )
-        global_diff += currDiffs
-        diffs.append(currDiffs)
+    # While the game is still on, let all entities move
+    if gameState.timeLeft > 0:
+        diffs = [diff1]
+        global_diff = 0
+        for entity in gameState.players:
+            entity.move(newFPS, gameState)
+            
+            currDiffs = datetime.datetime.now().timestamp() - ( time + global_diff )
+            global_diff += currDiffs
+            diffs.append(currDiffs)
 
-    background.move(newFPS, gameState)
+        background.move(newFPS, gameState)
     
     diff2 = datetime.datetime.now().timestamp() - ( time + diff1 )
 
     gameState.timeLeft -= 1/newFPS
-    text_surface = font.render(str(round(gameState.timeLeft)), False, (0, 0, 0))
 
-    if True:
-        # print("coucou")
+    if gameState.timeLeft <= 0 and not rendered_final_texts:
+        end_of_game_surface = font.render("Partie terminée !", False, (0, 0, 0))
+        end_of_game_pos = (background.width*TILES_SIZE//2 - end_of_game_surface.get_width()//2, background.height*TILES_SIZE * 0.25)
+
+        texts = [f"Ennemis tués : {player.killedEnemies},", f"Adversaires tués: {player.killedPlayers},", f"Points totaux: {player.points},", f"Capacité utilisée : {player.usedCapaTimes} fois,", f"Objets ramassés : {player.pickedObjects}"]
+        stats_surfaces = [font.render(text, False, (0, 0, 0)) for text in texts]
+        stats_pos = [(BACKGROUND_WIDTH*TILES_SIZE//2 - stats_surfaces[i].get_width()//2, BACKGROUND_HEIGHT*TILES_SIZE//2 + (i - len(texts)//2) * stats_surfaces[i].get_height()) for i in range(len(texts))]
+
+    if GRAPHIC_MODE:
         global_reload()
-
-    diff3 = datetime.datetime.now().timestamp() - ( time + diff2 )
 
     diff = datetime.datetime.now().timestamp() - time
 
@@ -114,7 +131,6 @@ while not stop:
     # print(f"Diff 2 : {diff2}")
     # for i in range(len(diffs)):
     #     print(f"    Diff 2-{i} : {diff2}")
-    # print(f"Diff 3 : {diff3}")
     # print(f"Total Diff : {diff}")
     # print()
     # print("----------------------------------")
@@ -122,7 +138,7 @@ while not stop:
     # Includes execution time in FPS
     newFPS = 1/(1/FPS + diff)
     
-    if True:
+    if GRAPHIC_MODE:
         sleep(1/FPS)
 
 # TODO

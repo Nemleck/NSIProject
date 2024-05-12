@@ -1,7 +1,8 @@
+from random import choice
 import pygame
 from utils import teleportToRandom
 from textures import Texture, AnimationPanel
-from gameElement import AnimatedElement, GameObject
+from gameElement import AnimatedElement, Enemy, GameObject
 
 class Background:
     def __init__(self, window, width, height, tileSize):
@@ -14,23 +15,32 @@ class Background:
         self.map: list[list["BgTile"]] = [[BgTile(self, "grass") for i in range(height)] for j in range(width)]
         self.elements: list["AnimatedElement"] = []
         self.objects: list["GameObject"] = []
+        self.ennemies: list["Enemy"] = []
 
         self.timeUntilNewObject = 0
     
     def move(self, FPS, gameState):
         self.timeUntilNewObject -= 1/FPS
 
-        if self.timeUntilNewObject <= 0:
+        if self.timeUntilNewObject <= 0 and gameState.timeLeft > 10:
             heart = self.summonObject("heart", [0, 0])
             teleportToRandom(self, heart)
 
+            monster = self.summonEnemy(choice(["livingTree", "blob", "bat"]), [0, 0])
+            teleportToRandom(self, monster)
+
             self.timeUntilNewObject = gameState.timeLeft // 10
+
+        # TODO : Put this in a method called 3 times
 
         for i in range(len(self.elements)):
             self.elements[i].move(FPS, gameState)
 
         for i in range(len(self.objects)):
             self.objects[i].move(FPS, gameState)
+
+        for i in range(len(self.ennemies)):
+            self.ennemies[i].move(FPS, gameState)
 
     def reload(self):
         # Graphics
@@ -51,6 +61,11 @@ class Background:
         for i in range(len(self.elements)):
             elm = self.elements[i]
             elm.reload()
+
+        # Ennemies Graphics
+        for i in range(len(self.ennemies)):
+            enn = self.ennemies[i]
+            enn.reload()
 
         # Objects Graphics
         for i in range(len(self.objects)):
@@ -74,6 +89,12 @@ class Background:
             if (self.objects[i-diff].isOnGround == False):
                 self.objects.pop(i-diff)
                 diff += 1
+        
+        diff = 0
+        for i in range(len(self.ennemies)):
+            if (self.ennemies[i-diff].dead == True):
+                self.ennemies.pop(i-diff)
+                diff += 1
 
     def pushElement(self, x, y, *elms):
         self.map[x][y] = BgTile(self, *elms)
@@ -90,7 +111,7 @@ class Background:
         for x in range(len(self.map)):
             result.append([])
             for y in range(len(self.map[x])):
-                if self.map[x][y].collide:
+                if self.map[x][y].doesCollide():
                     result[-1].append(-1)
                 else:
                     result[-1].append(0)
@@ -110,15 +131,29 @@ class Background:
 
         return gameObject
 
+    def summonEnemy(self, name, pos, animState="idle"):
+        gameObject = Enemy(self, pos[0], pos[1], name, self.tileSize, animState)
+        self.ennemies.append(gameObject)
+
+        return gameObject
+
 class BgTile:
-    def __init__(self, background, type: str, collide=False, state="idle"):
+    def __init__(self, background, type: str, collide=False, state="idle", zIndex=0):
         self.background: "Background" = background
         self.type = type
+        
+        self.zIndex = zIndex
         
         self.collide = collide
         self.overLayer = None
 
         self.animPanel = AnimationPanel(self, type, state)
+    
+    def doesCollide(self, zIndex=None):
+        return self.collide or ( zIndex != None and zIndex != self.zIndex )
+
+    def isTraversable(self, zIndex=0):
+        return zIndex > self.zIndex or not self.collide
     
     def setOverLayer(self, name: str = None, overLayerRotation: int = 0, state="idle"):
         self.overLayer = AnimationPanel(self, name, state)

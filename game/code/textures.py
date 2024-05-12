@@ -50,9 +50,12 @@ def get_adjusted_image(path, width, height=None):
 
 
 def get_imported_texture(name: str, state: str = None):
-    if name in imported_textures.keys() and (not state or (state and state in imported_textures[name])):
-        if (state and state in imported_textures[name]):
-            return imported_textures[name][state]
+    if name in imported_textures.keys():
+        if (state):
+            if (state in imported_textures[name]):
+                return imported_textures[name][state]
+            else:
+                return None
         elif (not state):
             return imported_textures[name]
 
@@ -67,6 +70,10 @@ class Texture:
         self.texturedElement = texturedElement
 
         self.texture = get_imported_texture(textureName, state)
+        if not self.texture:
+            self.texture = get_imported_texture(textureName, "idle")
+            state = "idle"
+
         self.isAnimated = type(self.texture) is list
 
         if (not self.isAnimated):
@@ -121,16 +128,17 @@ class Texture:
                 return self.flippedTexture[self.currentIndex]
 
 class UIElement:
-    def __init__(self, background, xpos, ypos, name, state, overLayerState=None, isPanel=True, noPanelWidth=None, noPanelHeight=None):
-        self.isPanel = isPanel
+    def __init__(self, background, xpos, ypos, name, state, overLayerState=None, width=None, height=None):
+        self.surface = AnimationPanel(self, name, state)
+        self.surface.set_size(width, height)
         
-        if (isPanel):
-            self.animPanel = AnimationPanel(self, name, state)
+        self.width = width
+        self.height = height
+
+        self.overLayer = None
+        if overLayerState:
             self.overLayer = AnimationPanel(self, name, overLayerState)
-        else:
-            self.surface = pygame.transform.scale(get_imported_texture(name, state), (noPanelWidth, noPanelHeight))
-            self.width = noPanelWidth
-            self.height = noPanelHeight
+            self.overLayer.set_size(width, height)
         
         self.stickedElement = None
 
@@ -145,15 +153,14 @@ class UIElement:
         self.stickedElement = element
     
     def reload(self):
-        if (self.isPanel):
-            self.background.window.blit(self.animPanel.get_texture(), (self.xpos - self.background.tileSize//2, self.ypos - self.background.tileSize//2))
-            self.background.window.blit(self.overLayer.get_texture(), (self.xpos - self.background.tileSize//2, self.ypos - self.background.tileSize//2))
-        else:
-            x, y = self.xpos, self.ypos
-            if (self.stickedElement):
-                x, y = self.stickedElement.xpos - self.width//2, self.stickedElement.ypos - self.height//2
-            
-            self.background.window.blit(self.surface, (x, y))
+        x, y = self.xpos, self.ypos
+        if (self.stickedElement):
+            x, y = self.stickedElement.xpos - self.width//2, self.stickedElement.ypos - self.height//2
+        
+        self.background.window.blit(self.surface.get_texture(), (x, y))
+
+        if self.overLayer:
+            self.background.window.blit(self.overLayer.get_texture(), (x, y))
 
 class AnimationPanel:
     def __init__(self, texturedElement, objName: str, state="idle"):
@@ -161,6 +168,7 @@ class AnimationPanel:
         self.name = objName
 
         imported = get_imported_texture(objName)
+
         self.textures: dict[str, Texture] = {}
         self.rowTextures = {}
         
@@ -176,6 +184,9 @@ class AnimationPanel:
         self.currentAnim = state
     
     def get_texture(self, *args):
+        if not self.currentAnim in self.textures.keys():
+            self.currentAnim = "idle"
+
         if self.textures[self.currentAnim].autoLaunchAnimation and self.textures[self.currentAnim].isFinished and not self.textures[self.currentAnim].loop:
             self.launch_animation(self.textures[self.currentAnim].autoLaunchAnimation)
 

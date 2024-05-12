@@ -13,6 +13,7 @@ def generateBackground(background: "Background", WIDTH, HEIGHT):
         if tile.type == "river":
             tile.setOverLayer("bridge", 0)
             tile.setCollide(False)
+            tile.zIndex = 0
 
             leftTile = background.getAt(i-1, HEIGHT//2)
             rightTile = background.getAt(i+1, HEIGHT//2)
@@ -36,8 +37,7 @@ def generateRiver(background: "Background", WIDTH, HEIGHT):
                 for j in range(-1, 1, 1):
                     if 0 <= xBg+i < WIDTH and 0 <= fx+j < HEIGHT:
                         tocheckpos.append((xBg+i, fx+j))
-                        background.pushElement(xBg+i, fx+j, "river")
-                        background.getAt(xBg+i, fx+j).setCollide(True)
+                        background.pushElement(xBg+i, fx+j, "river", True, "idle", -1)
 
     for pos in tocheckpos:
         if pos[1]-1 > 0 and background.getAt(pos[0], pos[1]-1).type == "grass":

@@ -24,7 +24,7 @@ def teleportToRandom(background, entity):
         pos = (randint(0, background.width-1), randint(0, background.height-1))
         tile = background.getAt(pos[0], pos[1])
 
-        if tile and not tile.collide:
+        if tile and not tile.doesCollide():
             entity.xpos, entity.ypos =  ( pos[0] + 0.5 ) * background.tileSize, \
                                         ( pos[1] + 0.5 ) * background.tileSize
             return
@@ -48,3 +48,24 @@ def getProjectileEndPointAndAngle(A, B, radius, tileSize): # A is the entity pos
         angle = 360 - angle
 
     return ( A[0] + xDiff*tileSize, A[1] + yDiff*tileSize ), angle
+
+def getAngleFromEntities(mainEntity, otherEntity):
+    yDiff = otherEntity.ypos - mainEntity.ypos
+    xDiff = otherEntity.xpos - mainEntity.ypos
+
+    if xDiff == 0:
+        return 0
+
+    radAngle = math.atan(( xDiff ) / ( yDiff ))
+    # print("radAngle", radAngle)
+    degrees = math.degrees(radAngle)
+
+    if yDiff > 0:
+        degrees = 360 - degrees
+
+    return degrees
+
+def getMousePosFromAngle(pos, angle):
+    radAngle = math.radians(angle)
+    
+    return (pos[0] + math.cos(radAngle), pos[1] + math.sin(radAngle))

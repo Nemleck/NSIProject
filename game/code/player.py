@@ -40,8 +40,8 @@ class PartialPlayer(Entity):
 
         self.walkingSurface = Texture(self, self.character, "walk")
 
-        self.capaField = UIElement(background, 0, 0, "capaField", "idle", None, False, (2*self.attackRange+1)*tileSize, (2*self.attackRange+1)*tileSize)
-        self.protectionField = UIElement(background, 0, 0, "capaField", "protection", None, False, (2*self.attackRange+1)*tileSize, (2*self.attackRange+1)*tileSize)
+        self.capaField = UIElement(background, 0, 0, "capaField", "idle", None, (2*self.attackRange+1)*tileSize, (2*self.attackRange+1)*tileSize)
+        self.protectionField = UIElement(background, 0, 0, "capaField", "protection", None, (2*self.attackRange+1)*tileSize, (2*self.attackRange+1)*tileSize)
         self.capaField.stickToElement(self)
         self.protectionField.stickToElement(self)
 
@@ -75,6 +75,10 @@ class PartialPlayer(Entity):
             if not self.capaClicking and self.capaCurrCooldown >= self.capaMaxCooldown//self.mapCapaUsesWithFullBar:
                 self.capaClicking = True
                 self.capaCurrCooldown -= self.capaMaxCooldown / self.mapCapaUsesWithFullBar
+                
+                # Stats
+                self.usedCapaTimes += 1
+                self.points += 5
 
                 if (self.capaCurrCooldown < 0):
                     self.capaCurrCooldown = 0
@@ -120,6 +124,10 @@ class PartialPlayer(Entity):
                 self.capaTimeLeft = 0
         
         return result, distance
+
+    def hurt(self, amount, attacker):
+        if not self.protectedTime > 0:
+            super().hurt(amount, attacker)
 
     def reload(self):
         if not self.dead:
@@ -169,12 +177,22 @@ class AI(PartialPlayer):
         self.pressedKeys = {}
         self.brain = brain
         self.behavior = "noBehavior"
+
+        self.capaAIClickingTime = 0
+        self.attackAIClickingTime = 0
     
     def enableKey(self, key):
         self.pressedKeys[key] = True
     
-    def setGoalTile(self, goal: tuple[int, int]):
+    def disableKey(self, key):
+        self.pressedKeys[key] = False
+    
+    def setGoalTile(self, goal: tuple[int, int], reversed=False):
         self.path = pathfinding(self.background, (self.xpos // self.tileSize, self.ypos // self.tileSize), goal)
+
+        if reversed:
+            for i in range(len(self.path)):
+                self.path = ( self.path[0] * -1, self.path[1] * -1 )
 
     def move(self, FPS, gameState):
         self.pressedKeys = {
@@ -188,6 +206,20 @@ class AI(PartialPlayer):
 
         self.brain.checkNeurons(gameState, self)
 
+        # Clicking
+
+        if self.capaAIClickingTime > 0:
+            self.capaAIClickingTime -= 1/FPS
+            self.disableKey("capacity")
+        if self.attackAIClickingTime > 0:
+            self.attackAIClickingTime -= 1/FPS
+            self.disableKey("attack")
+        
+        oldCapaClicking = self.capaClicking
+        oldAttackClicking = self.attackClicking
+
+        # Pathfinding
+
         if len(self.path) > 1:
             if self.path[0][1] == -1:
                 self.enableKey("z")
@@ -198,7 +230,11 @@ class AI(PartialPlayer):
             if self.path[0][0] == 1:
                 self.enableKey("d")
 
+        # Call move from super
+
         _, result = super().move(FPS, self.pressedKeys, gameState)
+
+        # Pathfinding
 
         self.distance += result[0] + result[1]
         
@@ -206,3 +242,10 @@ class AI(PartialPlayer):
             if self.distance >= self.tileSize:
                 self.path.pop(0)
                 self.distance = 0
+        
+        # Clicking time
+
+        if self.capaClicking == True and oldCapaClicking == False:
+            self.capaAIClickingTime = 0.5
+        if self.attackClicking == True and oldAttackClicking == False:
+            self.attackAIClickingTime = 0.5
