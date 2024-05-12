@@ -215,11 +215,14 @@ class Enemy(Entity):
 
         with open(f"./data/enemies/{name}.json", "r") as f:
             data = json.load(f)
+        
+        self.walkingPanel = AnimationPanel(self, "livingTree", "walk")
+        self.walking = False
 
         self.path = []
         self.distance = 0
 
-        self.detectionRange = 10
+        self.detectionRange = data["detectionRange"]
         self.health = data["health"]
         self.maxHealth = self.health
         self.autoRegen = data["autoRegen"]
@@ -236,9 +239,9 @@ class Enemy(Entity):
 
         self.currAttackCooldown -= 1/FPS
         if self.currAttackCooldown <= 0:
-            amounrHurt = self.attackAround(gameState)
+            amountHurt = self.attackAround(gameState)
 
-            if amounrHurt:
+            if amountHurt:
                 self.animPanel.launch_animation("attack")
 
             self.currAttackCooldown = self.maxAttackCooldown
@@ -258,14 +261,25 @@ class Enemy(Entity):
                     self.path = pathfinding(self.background, selfPos, playerPos)
                 
                 if (len(self.path) > 0):
-                    _, result = super().move(FPS, {
+                    actualDist, result = super().move(FPS, {
                         "z": self.path[0][1] == -1,
                         "s": self.path[0][1] == 1,
                         "q": self.path[0][0] == -1,
                         "d": self.path[0][0] == 1,
                     }, gameState)
 
+                    if actualDist[0] or actualDist[1]:
+                        self.walking = True
+                    else:
+                        self.walking = False
+
                     self.distance += result[0] + result[1]
+    
+    def reload(self):
+        if self.walking:
+            self.background.window.blit(self.walkingPanel.get_texture(self.lastDirection == "q"), (self.xpos, self.ypos))
+        else:
+            super().reload()
 
 class GameObject(GameElement):
     def __init__(self, background, xpos, ypos, name, tileSize, animState="idle"):
@@ -277,6 +291,7 @@ class GameObject(GameElement):
         if self.isOnGround:
             for player in gameState.players:
                 if manhattan_dist(gameState.tileSize, self, player) < 1:
+                    print("C TCHAO")
                     self.isOnGround = False
                     
                     # Touches the object

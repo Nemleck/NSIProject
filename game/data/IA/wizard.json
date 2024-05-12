@@ -62,17 +62,12 @@
             "inputs": [
                 {
                     "type": "TimeLeft",
-                    "maxTime": 35
-                },
-                {
-                    "type": "NearestObject",
-                    "distance": 0.82,
-                    "kind": null
+                    "maxTime": 170
                 }
             ],
             "output": {
                 "type": "SimpleKey",
-                "key": "q"
+                "key": "z"
             },
             "points": 0
         },

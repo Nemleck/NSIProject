@@ -39,13 +39,13 @@ player = Player(background, "wizard", TILES_SIZE)
 capaBar = UIElement(background, TILES_SIZE * (BACKGROUND_WIDTH - 1), TILES_SIZE * (BACKGROUND_HEIGHT - 5), "capaBar", "background", "cursor")
 EnnemyBlob = Enemy(background, TILES_SIZE, TILES_SIZE, "blob", TILES_SIZE, "idle")
 
-EnnemyBats = [Enemy(background, TILES_SIZE, TILES_SIZE, "bat", TILES_SIZE, "idle") for i in range(5)]
+EnnemyBats = [Enemy(background, TILES_SIZE, TILES_SIZE, "livingTree", TILES_SIZE, "idle") for i in range(5)]
 
 AIS = [
-    AI(background, choice(["wizard", "fletcher", "knight"]), TILES_SIZE, create_new_brain(BACKGROUND_WIDTH, BACKGROUND_HEIGHT)) for i in range(10)
+    AI(background, choice(["wizard", "fletcher", "knight"]), TILES_SIZE, load_brain("wizard")) for i in range(10)
 ]
 
-gameState = GameState(GAME_DURATION, AIS + [player], [EnnemyBlob] + EnnemyBats, [], TILES_SIZE)
+gameState = GameState(GAME_DURATION, AIS + [player], [EnnemyBlob] + EnnemyBats, background.objects, TILES_SIZE)
 
 for entity in gameState.getAllEntities():
     teleportToRandom(background, entity)
@@ -71,11 +71,7 @@ def global_reload():
 
     pygame.display.flip()
 
-background.summonObject("heart", [0, 0])
-
 font = pygame.font.SysFont('Comic Sans MS', 30)
-
-j = 0
 
 stop = False
 pathF = []
@@ -128,11 +124,6 @@ while not stop:
     
     if True:
         sleep(1/FPS)
-    
-    if j % FPS == 0:
-        print(gameState.timeLeft)
-    
-    j += 1
 
 # TODO
 # Traceback (most recent call last):

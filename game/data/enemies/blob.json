@@ -4,5 +4,6 @@
     "maxSpeed": 1,
     "attackDM": 2,
     "health": 50,
-    "autoRegen": 0
+    "autoRegen": 0,
+    "detectionRange": 10
 }

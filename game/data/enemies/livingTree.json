@@ -1,0 +1,9 @@
+{
+    "attackCooldown": 0.25,
+    "minSpeed": 0.1,
+    "maxSpeed": 0.2,
+    "attackDM": 5,
+    "health": 30,
+    "autoRegen": 1,
+    "detectionRange": 1
+}

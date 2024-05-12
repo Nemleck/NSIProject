@@ -24,8 +24,6 @@ def teleportToRandom(background, entity):
         pos = (randint(0, background.width-1), randint(0, background.height-1))
         tile = background.getAt(pos[0], pos[1])
 
-        print(tile)
-
         if tile and not tile.collide:
             entity.xpos, entity.ypos =  ( pos[0] + 0.5 ) * background.tileSize, \
                                         ( pos[1] + 0.5 ) * background.tileSize

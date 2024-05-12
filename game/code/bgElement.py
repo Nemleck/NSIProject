@@ -1,4 +1,5 @@
 import pygame
+from utils import teleportToRandom
 from textures import Texture, AnimationPanel
 from gameElement import AnimatedElement, GameObject
 
@@ -13,8 +14,18 @@ class Background:
         self.map: list[list["BgTile"]] = [[BgTile(self, "grass") for i in range(height)] for j in range(width)]
         self.elements: list["AnimatedElement"] = []
         self.objects: list["GameObject"] = []
+
+        self.timeUntilNewObject = 0
     
     def move(self, FPS, gameState):
+        self.timeUntilNewObject -= 1/FPS
+
+        if self.timeUntilNewObject <= 0:
+            heart = self.summonObject("heart", [0, 0])
+            teleportToRandom(self, heart)
+
+            self.timeUntilNewObject = gameState.timeLeft // 10
+
         for i in range(len(self.elements)):
             self.elements[i].move(FPS, gameState)
 
@@ -51,19 +62,18 @@ class Background:
         for i in range(len(self.elements)):
             # TODO : Fix several projectiles bug
             if (self.elements[i-diff].movingTo == None):
-                diff += 1
-                
                 if self.elements[i-diff].name == "fireball":
                     self.elements[i-diff].burnAround()
                 
                 self.elements.pop(i-diff)
+                
+                diff += 1
         
         diff = 0
         for i in range(len(self.objects)):
             if (self.objects[i-diff].isOnGround == False):
-                diff += 1
-
                 self.objects.pop(i-diff)
+                diff += 1
 
     def pushElement(self, x, y, *elms):
         self.map[x][y] = BgTile(self, *elms)
@@ -95,7 +105,10 @@ class Background:
         return elm
 
     def summonObject(self, name, pos, animState="idle"):
-        self.objects.append(GameObject(self, pos[0], pos[1], name, self.tileSize, animState))
+        gameObject = GameObject(self, pos[0], pos[1], name, self.tileSize, animState)
+        self.objects.append(gameObject)
+
+        return gameObject
 
 class BgTile:
     def __init__(self, background, type: str, collide=False, state="idle"):
