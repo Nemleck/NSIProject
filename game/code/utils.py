@@ -17,7 +17,7 @@ def get_distance_from_all_entities(gameState, selfPlayer):
 
     return distances
 
-def teleportToRandom(background, entity):
+def getSpawnablePlace(background, zIndex=0):
     found = False
     i = 0
     while not found:
@@ -25,14 +25,18 @@ def teleportToRandom(background, entity):
         tile = background.getAt(pos[0], pos[1])
 
         if tile and not tile.doesCollide():
-            entity.xpos, entity.ypos =  ( pos[0] + 0.5 ) * background.tileSize, \
-                                        ( pos[1] + 0.5 ) * background.tileSize
-            return
+            return pos
         else:
             i += 1
 
             if i > 100:
                 raise ValueError("Couldn't find any tile not colliding")
+
+def teleportToRandom(background, entity, zIndex=0):
+    pos = getSpawnablePlace(background, zIndex)
+
+    entity.xpos, entity.ypos =  ( pos[0] + 0.5 ) * background.tileSize, \
+                                        ( pos[1] + 0.5 ) * background.tileSize
 
 def getProjectileEndPointAndAngle(A, B, radius, tileSize): # A is the entity pos, B the mouse pos
     # Searching B point
@@ -53,7 +57,7 @@ def getAngleFromEntities(mainEntity, otherEntity):
     yDiff = otherEntity.ypos - mainEntity.ypos
     xDiff = otherEntity.xpos - mainEntity.ypos
 
-    if xDiff == 0:
+    if xDiff == 0 or yDiff == 0:
         return 0
 
     radAngle = math.atan(( xDiff ) / ( yDiff ))

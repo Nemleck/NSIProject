@@ -9,18 +9,52 @@ class GameElement:
         self.name = name
         self.animPanel = AnimationPanel(self, name, animState)
 
+        self.scheduledTime: float = 0.0
+        self.scheduledMethod = None
+        self.scheduledArgs = None
+
+        print(self.scheduledTime)
+        
         self.background = background
         self.tileSize = tileSize
         self.xpos = xpos
         self.ypos = ypos
+        
+    
+    def move(self, FPS, gameState):
+        if self.scheduledMethod:
+            self.scheduledTime -= 1/FPS
+            
+            if self.scheduledTime <= 0:
+                self.scheduledMethod(*self.scheduledArgs)
+
+                self.scheduledTime = 0
+                self.scheduledMethod = None
+                self.scheduledArgs = None
     
     def burnAround(self):
         for i in range(-1, 1+1, 1):
             for j in range(-1, 1+1, 1):
-                tile = self.background.getAt(int(((self.xpos)//self.tileSize) + i), int((self.ypos)//self.tileSize) + j)
+                x, y = int(((self.xpos)//self.tileSize) + i), int((self.ypos)//self.tileSize) + j
+                tile = self.background.getAt(x, y)
                 
                 if (tile and tile.overLayer):
                     tile.overLayer.launch_animation("burning")
+                    print("GOT ", tile.overLayer.get_loop_time("burning"))
+                    # self.scheduleMethod(3, self.setTileCollide, (x, y))
+
+                    # Temp fix
+                    self.setTileCollide(x, y)
+    
+    def setTileCollide(self, x, y):
+        print("Called !")
+        self.background.getAt(x, y).setCollide(False)
+    
+    def scheduleMethod(self, time: int, method, args=()):
+        self.scheduledTime = time
+        print(time, self.scheduledTime > 0)
+        self.scheduledMethod = method
+        self.scheduledArgs = args
     
     def reload(self):
         # Graphic
@@ -46,6 +80,9 @@ class AnimatedElement(GameElement):
         self.speed = speed
     
     def move(self, FPS, gameState):
+        super().move(FPS, gameState)
+        print(self.scheduledTime)
+        
         self.currentOpacity += self.opacityGrowth/FPS
 
         if (self.movingTo):
@@ -83,9 +120,9 @@ class Entity(GameElement):
     def __init__(self, background, xpos, ypos, name, tileSize, animState="idle", zIndex=0):
         super().__init__(background, xpos, ypos, name, tileSize, animState)
     
-        self.minSpeed = 1
+        self.minSpeed = 1 + randint(-25, 25)/100
         self.currentSpeed = self.minSpeed
-        self.maxSpeed = 2
+        self.maxSpeed = 2 + randint(-25, 25)/100
         self.moving = False
         self.timeSinceNoMove = 0
         self.currentDirection = None
@@ -133,10 +170,12 @@ class Entity(GameElement):
     
         if self.health <= 0:
             self.health = 0
-            self.dead = True
 
-            # Stats
-            attacker.points += 10
+            if self.animPanel.does_state_exist("dying"):
+                self.animPanel.launch_animation("dying")
+                self.scheduleMethod(self.animPanel.get_loop_time("dying"), self.kill, (attacker,))
+            else:
+                self.kill(attacker)
             
             if issubclass(self.__class__, Enemy):
                 attacker.killedEnemies += 1
@@ -144,6 +183,12 @@ class Entity(GameElement):
                 attacker.killedPlayers += 1
         
         return self.dead
+
+    def kill(self, attacker):
+        self.dead = True
+
+        # Stats
+        attacker.points += 10
     
     def regenerate(self, amount):
         self.health += amount
@@ -161,6 +206,8 @@ class Entity(GameElement):
             self.background.window.blit(self.healthBar.get_texture(), (self.xpos - self.tileSize//2, self.ypos - self.tileSize))
 
     def move(self, FPS, is_pressed, gameState):
+        super().move(FPS, gameState)
+
         # Attacked time
 
         if self.lastAttacker:
@@ -268,6 +315,8 @@ class Enemy(Entity):
 
         # Move
 
+        oldWalking = self.walking
+
         selfPos = (self.xpos // self.tileSize, self.ypos // self.tileSize)
 
         if self.distance >= self.tileSize:
@@ -290,16 +339,22 @@ class Enemy(Entity):
 
                     if actualDist[0] or actualDist[1]:
                         self.walking = True
+
+                        if oldWalking == False:
+                            self.animPanel.launch_animation("walk")
                     else:
                         self.walking = False
 
+                        if oldWalking == True:
+                            self.animPanel.launch_animation("idle")
+
                     self.distance += result[0] + result[1]
     
-    def reload(self):
-        if self.walking:
-            self.background.window.blit(self.walkingPanel.get_texture(self.lastDirection == "q"), (self.xpos, self.ypos))
-        else:
-            super().reload()
+    # def reload(self):
+    #     if self.walking:
+    #         self.background.window.blit(self.walkingPanel.get_texture(self.lastDirection != "q"), (self.xpos - self.tileSize//2, self.ypos - self.tileSize//2))
+    #     else:
+    #         super().reload()
 
 class GameObject(GameElement):
     def __init__(self, background, xpos, ypos, name, tileSize, animState="idle"):
@@ -311,7 +366,6 @@ class GameObject(GameElement):
         if self.isOnGround:
             for player in gameState.players:
                 if manhattan_dist(gameState.tileSize, self, player) < 1:
-                    print("C TCHAO")
                     self.isOnGround = False
                     
                     # Touches the object

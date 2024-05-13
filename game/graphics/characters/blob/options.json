@@ -1,3 +1,4 @@
 {
-    "attack": [false, null, null, 0, "idle", true]
+    "attack": [false, null, null, 0, "idle", true],
+    "dying": [false, null, null, 0, null, false]
 }

@@ -372,7 +372,6 @@ class Attack(Output):
 
     def performAction(self, inputData: InputData, selfAI: AI):
         selfAI.enableKey("attack")
-        print(inputData.angle)
         if inputData.angle:
             selfAI.mousePos = getMousePosFromAngle((selfAI.xpos, selfAI.ypos), inputData.angle)
 @dataclass

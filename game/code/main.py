@@ -39,15 +39,15 @@ player = Player(background, "wizard", TILES_SIZE)
 capaBar = UIElement(background, TILES_SIZE * (BACKGROUND_WIDTH - 1), TILES_SIZE * (BACKGROUND_HEIGHT - 5), "capaBar", "background", "cursor", TILES_SIZE, 5*TILES_SIZE)
 
 AIS = [
-    AI(background, choice(["wizard", "fletcher", "knight"]), TILES_SIZE, load_brain("wizard")) for i in range(1)
+    AI(background, choice(["wizard", "fletcher", "knight"]), TILES_SIZE, load_brain("wizard")) for i in range(5)
 ]
 
 endScreen = UIElement(background, 0, 0, "endScreen", "idle", None, TILES_SIZE*BACKGROUND_WIDTH, TILES_SIZE*BACKGROUND_HEIGHT)
 
 gameState = GameState(GAME_DURATION, AIS + [player], background.ennemies, background.objects, TILES_SIZE)
 
-for entity in gameState.getAllEntities():
-    teleportToRandom(background, entity)
+for player in gameState.getAllEntities():
+    teleportToRandom(background, player)
 
 def global_reload():
     window.fill([0,0,0,0])
@@ -99,14 +99,18 @@ while not stop:
     if gameState.timeLeft > 0:
         diffs = [diff1]
         global_diff = 0
-        for entity in gameState.players:
-            entity.move(newFPS, gameState)
-            
-            currDiffs = datetime.datetime.now().timestamp() - ( time + global_diff )
-            global_diff += currDiffs
-            diffs.append(currDiffs)
+        for player in gameState.players:
+            if not player.dead:
+                player.move(newFPS, gameState)
+                
+                currDiffs = datetime.datetime.now().timestamp() - ( time + global_diff )
+                global_diff += currDiffs
+                diffs.append(currDiffs)
 
         background.move(newFPS, gameState)
+
+    if player.dead:
+        gameState.timeLeft = 0
     
     diff2 = datetime.datetime.now().timestamp() - ( time + diff1 )
 
@@ -116,7 +120,7 @@ while not stop:
         end_of_game_surface = font.render("Partie terminée !", False, (0, 0, 0))
         end_of_game_pos = (background.width*TILES_SIZE//2 - end_of_game_surface.get_width()//2, background.height*TILES_SIZE * 0.25)
 
-        texts = [f"Ennemis tués : {player.killedEnemies},", f"Adversaires tués: {player.killedPlayers},", f"Points totaux: {player.points},", f"Capacité utilisée : {player.usedCapaTimes} fois,", f"Objets ramassés : {player.pickedObjects}"]
+        texts = [f"Ennemis tués : {player.killedEnemies},", f"Adversaires tués: {player.killedPlayers},", f"Capacité utilisée : {player.usedCapaTimes} fois,", f"Objets ramassés : {player.pickedObjects}", f"Points totaux: {player.points},"]
         stats_surfaces = [font.render(text, False, (0, 0, 0)) for text in texts]
         stats_pos = [(BACKGROUND_WIDTH*TILES_SIZE//2 - stats_surfaces[i].get_width()//2, BACKGROUND_HEIGHT*TILES_SIZE//2 + (i - len(texts)//2) * stats_surfaces[i].get_height()) for i in range(len(texts))]
 

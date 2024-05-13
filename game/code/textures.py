@@ -94,6 +94,12 @@ class Texture:
         self.endAnimFunc = endAnimFunc
         self.endAnimArgs = endAnimArgs
     
+    def get_loop_time(self):
+        if not self.isAnimated:
+            return self.animationInterval
+        else:
+            return self.animationInterval * len(self.texture)
+    
     def get_texture(self, flipped=True):
         if (not self.isAnimated):
             if (not flipped):
@@ -183,6 +189,15 @@ class AnimationPanel:
 
         self.currentAnim = state
     
+    def get_loop_time(self, state):
+        if self.does_state_exist(state):
+            return self.textures[state].get_loop_time()
+        else:
+            return 0
+    
+    def does_state_exist(self, state):
+        return state in self.textures.keys()
+    
     def get_texture(self, *args):
         if not self.currentAnim in self.textures.keys():
             self.currentAnim = "idle"
@@ -193,7 +208,7 @@ class AnimationPanel:
         return self.textures[self.currentAnim].get_texture(args)
     
     def launch_animation(self, animation):
-        if (animation in self.textures.keys()):
+        if (animation in self.textures.keys() and self.textures[self.currentAnim].relaunchable):
             self.currentAnim = animation
 
             if self.textures[self.currentAnim].relaunchable:

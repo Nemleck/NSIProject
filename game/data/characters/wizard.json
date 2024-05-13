@@ -7,6 +7,6 @@
     "capaDM": 20,
     "attackDM": 10,
     "attackRange": 1,
-    "health": 75,
-    "autoRegen": 1.5
+    "health": 25,
+    "autoRegen": 0.5
 }

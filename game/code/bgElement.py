@@ -1,6 +1,6 @@
 from random import choice
 import pygame
-from utils import teleportToRandom
+from utils import getSpawnablePlace, teleportToRandom
 from textures import Texture, AnimationPanel
 from gameElement import AnimatedElement, Enemy, GameObject
 
@@ -26,8 +26,17 @@ class Background:
             heart = self.summonObject("heart", [0, 0])
             teleportToRandom(self, heart)
 
-            monster = self.summonEnemy(choice(["livingTree", "blob", "bat"]), [0, 0])
-            teleportToRandom(self, monster)
+            enemyType = choice(["livingTree", "blob", "bat"])
+
+            groupSpawn = {
+                "livingTree": 1,
+                "blob": 5,
+                "bat": 3
+            }
+            
+            pos = getSpawnablePlace(self, 0)
+            for i in range(groupSpawn[enemyType]):
+                monster = self.summonEnemy(enemyType, (pos[0]*self.tileSize, pos[1]*self.tileSize))
 
             self.timeUntilNewObject = gameState.timeLeft // 10
 
