@@ -23,7 +23,7 @@ class Background:
         self.timeUntilNewObject -= 1/FPS
 
         if self.timeUntilNewObject <= 0 and gameState.timeLeft > 10:
-            heart = self.summonObject("heart", [0, 0])
+            heart = self.summonObject(choice(["heart", "shield"]), [0, 0])
             teleportToRandom(self, heart)
 
             enemyType = choice(["livingTree", "blob", "bat"])

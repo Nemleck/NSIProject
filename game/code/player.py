@@ -95,6 +95,7 @@ class PartialPlayer(Entity):
                 elif (self.character == "fletcher"):
                     self.capaUsing = True
                     self.capaTimeLeft = self.capaDuration
+                    self.protectedTime = self.capaDuration
 
         else:
             self.capaClicking = False
@@ -127,7 +128,11 @@ class PartialPlayer(Entity):
 
     def hurt(self, amount, attacker):
         if not self.protectedTime > 0:
+            print(self.protectedTime)
             super().hurt(amount, attacker)
+    
+    def enableShield(self, time):
+        self.protectedTime += time
 
     def reload(self):
         if not self.dead:
@@ -192,7 +197,7 @@ class AI(PartialPlayer):
 
         if reversed:
             for i in range(len(self.path)):
-                self.path = ( self.path[0] * -1, self.path[1] * -1 )
+                self.path[i] = ( self.path[i][0] * -1, self.path[i][1] * -1 )
 
     def move(self, FPS, gameState):
         self.pressedKeys = {
@@ -220,7 +225,7 @@ class AI(PartialPlayer):
 
         # Pathfinding
 
-        if len(self.path) > 1:
+        if len(self.path) > 0:
             if self.path[0][1] == -1:
                 self.enableKey("z")
             if self.path[0][1] == 1:
@@ -238,7 +243,7 @@ class AI(PartialPlayer):
 
         self.distance += result[0] + result[1]
         
-        if len(self.path) > 1:
+        if len(self.path) > 0:
             if self.distance >= self.tileSize:
                 self.path.pop(0)
                 self.distance = 0

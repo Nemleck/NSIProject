@@ -27,8 +27,41 @@
             ],
             "output": {
                 "type": "GoalTile",
+                "coords": [1, 2],
+                "reversed": false
+            }
+        },
+        {
+            "inputs": [
+                {
+                    "type": "NearestObject",
+                    "distance": 10,
+                    "kind": "heart"
+                },
+                {
+                    "type": "OwnHealthPercentage",
+                    "minPercentage": null,
+                    "maxPercentage": 80
+                }
+            ],
+            "output": {
+                "type": "GoalTile",
                 "coords": "inputData",
                 "reversed": false
+            }
+        },
+        {
+            "inputs": [
+                {
+                    "type": "TilesAround",
+                    "relativePos": [1, 1],
+                    "tileType": null,
+                    "tileCollision": true
+                }
+            ],
+            "output": {
+                "type": "SimpleKey",
+                "key": "z"
             }
         }
     ]

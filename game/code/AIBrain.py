@@ -16,6 +16,7 @@ OBJECTS = ["bomb", "armor", "sword"]
 MAX_TIME = 300
 CAPA_STATES = ["charging", "using", "ready", "fullBar"]
 KEYS = ["s", "z", "q", "d"]
+TILE_TYPES = ["grass", "river"]
 
 def load_brain(filename) -> "Brain":
     with open(f"./data/IA/{filename}.json", "r") as f:
@@ -43,7 +44,7 @@ def create_new_brain(WIDTH, HEIGHT):
         inputs: list[Input] = []
 
         for j in range(randint(1, 3)):
-            inputType = randint(0, 6)
+            inputType = randint(0, 7)
 
             if (inputType == 0):
                 distance = randint(1, HEIGHT * 50) / 100
@@ -100,8 +101,19 @@ def create_new_brain(WIDTH, HEIGHT):
             elif (inputType == 5):
                 input = OwnCapacityState("OwnCapacityState", choice(CAPA_STATES))
             
-            else:
+            elif (inputType == 6):
                 input = OwnHealthPercentage("OwnHealthPercentage", randint(0, 100), randint(0, 100))
+            
+            else:
+                tileType = None
+                if randint(0, (1 - coef) * 10) == 0:
+                    tileType = choice(TILE_TYPES)
+                
+                tileCollision = None
+                if randint(0, (1 - coef) * 10) == 0:
+                    tileCollision = randint(0, 1) == 1
+
+                input = TilesAround((randint(-3, 3), randint(-3, 3)), tileType, tileCollision)
             
             inputs.append(input)
         
@@ -151,6 +163,9 @@ class GameState:
 
     def getAllEntities(self):
         return [entity for entity in self.players + self.enemies if not entity.dead]
+    
+    def getPlayers(self):
+        return [player for player in self.players if not player.dead]
 
 @dataclass
 class InputData:
@@ -203,7 +218,7 @@ class PlayerDistance(Input):
     def isChecked(self, gameState: GameState, selfAI: AI):
         nearest = None
         nearestDist = 0
-        for player in gameState.players:
+        for player in gameState.getPlayers():
             if player != selfAI:
                 distance = manhattan_dist(gameState.tileSize, player, selfAI)
                 if ( not nearest and distance <= self.distance ) or ( distance <= nearestDist ):
@@ -327,6 +342,21 @@ class OwnHealthPercentage(Input):
     def isChecked(self, gameState, selfAI):
         ratio = ( selfAI.health / selfAI.maxHealth ) * 100
         return ( self.minPercentage == None or ratio >= self.minPercentage ) and ( self.maxPercentage == None or ratio <= self.maxPercentage )
+
+@dataclass
+class TilesAround(Input):
+    type: Literal["TilesAround"]
+    relativePos: tuple[int, int]
+    tileType: str | None
+    tileCollision: bool | None
+
+    def isChecked(self, gameState: GameState, selfAI: AI):
+        tile = selfAI.background.getAt(selfAI.xpos//gameState.tileSize + self.relativePos[0], selfAI.ypos//gameState.tileSize + self.relativePos[1])
+        
+        if not tile:
+            return self.tileCollision == True # If a collision is needed and there is no tile, return True, False otherwise
+
+        return ( not self.tileType or self.tileType == tile.name ) and ( self.tileCollision == tile.doesCollide(selfAI.zIndex) )
 
 @dataclass
 class Output:

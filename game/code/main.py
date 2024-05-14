@@ -35,7 +35,7 @@ generateBackground(background, BACKGROUND_WIDTH, BACKGROUND_HEIGHT)
 FPS = 60
 newFPS = 60
 
-player = Player(background, "wizard", TILES_SIZE)
+player = Player(background, "fletcher", TILES_SIZE)
 capaBar = UIElement(background, TILES_SIZE * (BACKGROUND_WIDTH - 1), TILES_SIZE * (BACKGROUND_HEIGHT - 5), "capaBar", "background", "cursor", TILES_SIZE, 5*TILES_SIZE)
 
 AIS = [
@@ -53,7 +53,7 @@ def global_reload():
     window.fill([0,0,0,0])
     background.reload()
     
-    if player.character == "fletcher" and player.capaUsing:
+    if player.protectedTime > 0:
         player.protectionField.reload()
     else:
         player.capaField.reload()
@@ -99,7 +99,7 @@ while not stop:
     if gameState.timeLeft > 0:
         diffs = [diff1]
         global_diff = 0
-        for player in gameState.players:
+        for player in gameState.getPlayers():
             if not player.dead:
                 player.move(newFPS, gameState)
                 

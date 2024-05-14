@@ -12,8 +12,6 @@ class GameElement:
         self.scheduledTime: float = 0.0
         self.scheduledMethod = None
         self.scheduledArgs = None
-
-        print(self.scheduledTime)
         
         self.background = background
         self.tileSize = tileSize
@@ -40,25 +38,29 @@ class GameElement:
                 
                 if (tile and tile.overLayer):
                     tile.overLayer.launch_animation("burning")
-                    print("GOT ", tile.overLayer.get_loop_time("burning"))
+                    # print("GOT ", tile.overLayer.get_loop_time("burning"))
                     # self.scheduleMethod(3, self.setTileCollide, (x, y))
 
                     # Temp fix
                     self.setTileCollide(x, y)
     
     def setTileCollide(self, x, y):
-        print("Called !")
         self.background.getAt(x, y).setCollide(False)
     
     def scheduleMethod(self, time: int, method, args=()):
         self.scheduledTime = time
-        print(time, self.scheduledTime > 0)
         self.scheduledMethod = method
         self.scheduledArgs = args
     
-    def reload(self):
+    def reload(self, customXpos=None, customYpos=None):
+        xpos, ypos = self.xpos, self.ypos
+        if customXpos:
+            xpos = customXpos
+        if customYpos:
+            ypos = customYpos
+
         # Graphic
-        self.background.window.blit(self.animPanel.get_texture(), (self.xpos - self.background.tileSize//2, self.ypos - self.background.tileSize//2))
+        self.background.window.blit(self.animPanel.get_texture(), (xpos - self.background.tileSize//2, ypos - self.background.tileSize//2))
 
 class AnimatedElement(GameElement):
     def __init__(self, background, xpos, ypos, name, tileSize, invoker, state="idle", DM=0, opacityGrowth=0):
@@ -81,7 +83,6 @@ class AnimatedElement(GameElement):
     
     def move(self, FPS, gameState):
         super().move(FPS, gameState)
-        print(self.scheduledTime)
         
         self.currentOpacity += self.opacityGrowth/FPS
 
@@ -152,12 +153,12 @@ class Entity(GameElement):
 
         self.healthBar = AnimationPanel(self, "healthBar", "idle")
     
-    def attackAround(self, gameState):
+    def attackAround(self, gameState, attackEnemies=True):
         distances = get_distance_from_all_entities(gameState, self)
         
         amountHurt = 0
         for key in distances.keys():
-            if distances[key] < self.attackRange:
+            if distances[key] < self.attackRange and ( attackEnemies or not issubclass(key.__class__, Enemy) ):
                 amountHurt += 1
                 key.hurt(self.attackValue, self)
         
@@ -306,7 +307,7 @@ class Enemy(Entity):
 
         self.currAttackCooldown -= 1/FPS
         if self.currAttackCooldown <= 0:
-            amountHurt = self.attackAround(gameState)
+            amountHurt = self.attackAround(gameState, False)
 
             if amountHurt:
                 self.animPanel.launch_animation("attack")
@@ -323,7 +324,7 @@ class Enemy(Entity):
             self.path.pop(0)
             self.distance = 0
 
-        for player in gameState.players:
+        for player in gameState.getPlayers():
             playerPos = (player.xpos // self.tileSize, player.ypos // self.tileSize)
             if (abs(selfPos[0] - playerPos[0]) + abs(selfPos[0] - playerPos[0]) <= self.detectionRange):
                 if (len(self.path) == 0):
@@ -361,20 +362,32 @@ class GameObject(GameElement):
         super().__init__(background, (xpos+0.5)*tileSize, (ypos+0.5)*tileSize, name, tileSize, animState)
 
         self.isOnGround = True
+        self.currentCosPos = 0
+        self.yDiff = 0
+        self.twoPi = math.pi * 2
 
     def move(self, FPS: float, gameState):
+        self.currentCosPos += 2/FPS
+        if self.currentCosPos > self.twoPi:
+            self.currentCosPos -= self.twoPi
+
+        self.yDiff = math.cos(self.currentCosPos) * 0.1 * gameState.tileSize
+
         if self.isOnGround:
-            for player in gameState.players:
+            for player in gameState.getPlayers():
                 if manhattan_dist(gameState.tileSize, self, player) < 1:
                     self.isOnGround = False
+                    player.pickedObjects += 1
+                    player.points += 3
                     
                     # Touches the object
 
                     if self.name == "heart":
                         player.regenerate(50)
-                        player.pickedObjects += 1
-                        player.points += 3
+                    
+                    if self.name == "shield":
+                        player.enableShield(5)
     
     def reload(self):
         if self.isOnGround:
-            super().reload()
+            super().reload(None, self.ypos + self.yDiff)
