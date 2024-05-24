@@ -36,7 +36,7 @@ class Background:
             
             pos = getSpawnablePlace(self, 0)
             for i in range(groupSpawn[enemyType]):
-                monster = self.summonEnemy(enemyType, (pos[0]*self.tileSize, pos[1]*self.tileSize))
+                monster = self.summonEnemy(enemyType, ((pos[0]- 0.5)*self.tileSize, (pos[1]-0.5)*self.tileSize))
 
             self.timeUntilNewObject = gameState.timeLeft // 10
 

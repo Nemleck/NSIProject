@@ -1,4 +1,4 @@
-title Projet NSI
+title Projet NSI - Jeu
 
 :start
 python code/main.py

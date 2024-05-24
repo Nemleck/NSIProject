@@ -2,131 +2,171 @@
 neurons:
 - !!python/object:AIBrain.Neuron
   inputs:
-  - !!python/object:AIBrain.PlayerDistance
-    capaState: null
-    character: null
-    distance: 3.71
-    pvMin: 69
-    type: PlayerDistance
+  - !!python/object:AIBrain.TilesAround
+    relativePos: !!python/tuple
+    - 3
+    - -3
+    tileCollision: null
+    tileType: null
+    type: TilesAround
+  - !!python/object:AIBrain.OwnHealthPercentage
+    maxPercentage: 26
+    minPercentage: 3
+    type: OwnHealthPercentage
   output: !!python/object:AIBrain.GoalTile
     coords: inputData
-    type: GoalTile
-  points: 0
-- !!python/object:AIBrain.Neuron
-  inputs:
-  - !!python/object:AIBrain.TimeLeft
-    maxTime: 92
-    type: timeLeft
-  - !!python/object:AIBrain.PlayerDistance
-    capaState: fullBar
-    character: null
-    distance: 1.18
-    pvMin: 70
-    type: PlayerDistance
-  - !!python/object:AIBrain.TimeLeft
-    maxTime: 97
-    type: timeLeft
-  output: !!python/object:AIBrain.GoalTile
-    coords: &id001 !!python/tuple
-    - 0
-    - 0
-    type: GoalTile
-  points: 0
-- !!python/object:AIBrain.Neuron
-  inputs:
-  - !!python/object:AIBrain.TimeLeft
-    maxTime: 35
-    type: timeLeft
-  - !!python/object:AIBrain.NearestObject
-    distance: 0.82
-    kind: null
-    type: NearestObject
-  output: !!python/object:AIBrain.SimpleKey
-    key: q
-    type: SimpleKey
-  points: 0
-- !!python/object:AIBrain.Neuron
-  inputs:
-  - !!python/object:AIBrain.NearestObject
-    distance: 0.87
-    kind: sword
-    type: NearestObject
-  output: !!python/object:AIBrain.GoalTile
-    coords: inputData
-    type: GoalTile
-  points: 0
-- !!python/object:AIBrain.Neuron
-  inputs:
-  - !!python/object:AIBrain.PlayerDistance
-    capaState: null
-    character: null
-    distance: 0.57
-    pvMin: null
-    type: PlayerDistance
-  output: !!python/object:AIBrain.GoalTile
-    coords: *id001
-    type: GoalTile
-  points: 0
-- !!python/object:AIBrain.Neuron
-  inputs:
-  - !!python/object:AIBrain.PlayerDistance
-    capaState: charging
-    character: null
-    distance: 2.02
-    pvMin: null
-    type: PlayerDistance
-  - !!python/object:AIBrain.AttackingEntity
-    entityType: null
-    maxTime: 252
-    type: AttackingEntity
-  output: !!python/object:AIBrain.Behavior
-    behavior: noBehavior
-    type: Behavior
-  points: 0
-- !!python/object:AIBrain.Neuron
-  inputs:
-  - !!python/object:AIBrain.TimeLeft
-    maxTime: 288
-    type: timeLeft
-  - !!python/object:AIBrain.OwnCapacityState
-    state: ready
-    type: OwnCapacityState
-  output: !!python/object:AIBrain.GoalTile
-    coords: inputData
+    reversed: false
     type: GoalTile
   points: 0
 - !!python/object:AIBrain.Neuron
   inputs:
   - !!python/object:AIBrain.OwnCapacityState
-    state: charging
+    state: ready
     type: OwnCapacityState
-  output: !!python/object:AIBrain.Behavior
-    behavior: noBehavior
-    type: Behavior
+  - !!python/object:AIBrain.TilesAround
+    relativePos: !!python/tuple
+    - -3
+    - 3
+    tileCollision: null
+    tileType: null
+    type: TilesAround
+  output: !!python/object:AIBrain.Capacity
+    type: Capacity
   points: 0
 - !!python/object:AIBrain.Neuron
   inputs:
-  - !!python/object:AIBrain.NearestObject
-    distance: 2.38
-    kind: null
-    type: NearestObject
+  - !!python/object:AIBrain.TilesAround
+    relativePos: !!python/tuple
+    - -1
+    - 1
+    tileCollision: null
+    tileType: null
+    type: TilesAround
+  - !!python/object:AIBrain.TilesAround
+    relativePos: !!python/tuple
+    - -3
+    - -2
+    tileCollision: false
+    tileType: null
+    type: TilesAround
+  - !!python/object:AIBrain.TilesAround
+    relativePos: !!python/tuple
+    - -1
+    - -3
+    tileCollision: null
+    tileType: null
+    type: TilesAround
   output: !!python/object:AIBrain.GoalTile
-    coords: *id001
+    coords: !!python/tuple
+    - 0
+    - 0
+    reversed: true
     type: GoalTile
   points: 0
 - !!python/object:AIBrain.Neuron
   inputs:
+  - !!python/object:AIBrain.TilesAround
+    relativePos: !!python/tuple
+    - 0
+    - -3
+    tileCollision: null
+    tileType: null
+    type: TilesAround
   - !!python/object:AIBrain.EnemyDistance
     character: null
-    distance: 1.86
+    distance: 3.41
     pvMin: null
     type: EnemyDistance
+  output: !!python/object:AIBrain.Capacity
+    type: Capacity
+  points: 0
+- !!python/object:AIBrain.Neuron
+  inputs:
+  - !!python/object:AIBrain.TimeLeft
+    maxTime: 291
+    minTime: 107
+    type: TimeLeft
+  - !!python/object:AIBrain.EnemyDistance
+    character: null
+    distance: 1.38
+    pvMin: null
+    type: EnemyDistance
+  output: !!python/object:AIBrain.Behavior
+    behavior: collaborator
+    type: Behavior
+  points: 0
+- !!python/object:AIBrain.Neuron
+  inputs:
+  - !!python/object:AIBrain.AttackingEntity
+    entityType: null
+    maxTime: 21
+    type: AttackingEntity
+  - !!python/object:AIBrain.TilesAround
+    relativePos: !!python/tuple
+    - -1
+    - -3
+    tileCollision: null
+    tileType: river
+    type: TilesAround
+  output: !!python/object:AIBrain.Attack
+    type: Attack
+  points: 0
+- !!python/object:AIBrain.Neuron
+  inputs:
+  - !!python/object:AIBrain.OwnHealthPercentage
+    maxPercentage: 38
+    minPercentage: 34
+    type: OwnHealthPercentage
   - !!python/object:AIBrain.PlayerDistance
     capaState: null
-    character: wizard
-    distance: 1.49
+    character: null
+    distance: 0.1
     pvMin: null
     type: PlayerDistance
+  - !!python/object:AIBrain.NearestObject
+    distance: 2.33
+    kind: null
+    type: NearestObject
+  output: !!python/object:AIBrain.GoalTile
+    coords: inputData
+    reversed: true
+    type: GoalTile
+  points: 0
+- !!python/object:AIBrain.Neuron
+  inputs:
+  - !!python/object:AIBrain.TilesAround
+    relativePos: !!python/tuple
+    - -3
+    - -3
+    tileCollision: null
+    tileType: null
+    type: TilesAround
+  output: !!python/object:AIBrain.Behavior
+    behavior: bourin
+    type: Behavior
+  points: 0
+- !!python/object:AIBrain.Neuron
+  inputs:
+  - !!python/object:AIBrain.TimeLeft
+    maxTime: 203
+    minTime: 145
+    type: TimeLeft
+  - !!python/object:AIBrain.OwnCapacityState
+    state: fullBar
+    type: OwnCapacityState
+  output: !!python/object:AIBrain.Behavior
+    behavior: bourin
+    type: Behavior
+  points: 0
+- !!python/object:AIBrain.Neuron
+  inputs:
+  - !!python/object:AIBrain.OwnCapacityState
+    state: fullBar
+    type: OwnCapacityState
+  - !!python/object:AIBrain.OwnHealthPercentage
+    maxPercentage: 44
+    minPercentage: 53
+    type: OwnHealthPercentage
   output: !!python/object:AIBrain.Capacity
     type: Capacity
   points: 0

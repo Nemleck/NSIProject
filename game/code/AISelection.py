@@ -11,7 +11,7 @@ def play_game(brains: list[Brain]):
     return [
         {
             "total_points": randint(100, 300),
-            "neurons_points": [ randint(0, 10) for j in range(len(brains[i].neurons)) ],
+            "neurons_points": [ 0 for j in range(len(brains[i].neurons)) ],
             "brain": brains[i]
         } for i in range(len(brains))
     ]

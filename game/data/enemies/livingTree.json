@@ -5,5 +5,6 @@
     "attackDM": 5,
     "health": 30,
     "autoRegen": 1,
-    "detectionRange": 1
+    "detectionRange": 1,
+    "hidden": true
 }

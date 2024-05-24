@@ -118,7 +118,7 @@ class AnimatedElement(GameElement):
         super().reload()
 
 class Entity(GameElement):
-    def __init__(self, background, xpos, ypos, name, tileSize, animState="idle", zIndex=0):
+    def __init__(self, background, xpos, ypos, name, tileSize, animState="idle", zIndex=0, hidden=False):
         super().__init__(background, xpos, ypos, name, tileSize, animState)
     
         self.minSpeed = 1 + randint(-25, 25)/100
@@ -138,6 +138,7 @@ class Entity(GameElement):
         self.pickedObjects = 0
 
         self.zIndex = zIndex
+        self.hidden = hidden
 
         self.attackRange = 1
         self.attackValue = 3
@@ -201,10 +202,11 @@ class Entity(GameElement):
         if not self.dead:
             # Reload health bar
 
-            self.healthBar.set_size(self.tileSize * ( self.health / self.maxHealth ), None)
-
             super().reload()
-            self.background.window.blit(self.healthBar.get_texture(), (self.xpos - self.tileSize//2, self.ypos - self.tileSize))
+
+            if not self.hidden:
+                self.healthBar.set_size(self.tileSize * ( self.health / self.maxHealth ), None)
+                self.background.window.blit(self.healthBar.get_texture(), (self.xpos - self.tileSize//2, self.ypos - self.tileSize))
 
     def move(self, FPS, is_pressed, gameState):
         super().move(FPS, gameState)
@@ -279,10 +281,10 @@ class Entity(GameElement):
 
 class Enemy(Entity):
     def __init__(self, background, xpos, ypos, name, tileSize, animState="idle"):
-        super().__init__(background, xpos, ypos, name, tileSize, animState)
-
         with open(f"./data/enemies/{name}.json", "r") as f:
             data = json.load(f)
+
+        super().__init__(background, xpos, ypos, name, tileSize, animState, 0, data["hidden"])
         
         self.walkingPanel = AnimationPanel(self, name, "walk")
         self.walking = False
@@ -310,6 +312,7 @@ class Enemy(Entity):
             amountHurt = self.attackAround(gameState, False)
 
             if amountHurt:
+                self.hidden = False
                 self.animPanel.launch_animation("attack")
 
             self.currAttackCooldown = self.maxAttackCooldown

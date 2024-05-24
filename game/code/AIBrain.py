@@ -3,7 +3,7 @@ import dataclasses
 import json
 from random import choice, randint
 import sys
-from typing import Literal
+from typing import Literal, get_args
 
 import yaml
 
@@ -37,6 +37,9 @@ def load_brain(filename) -> "Brain":
 
     return brain
 
+def get_random_distance(HEIGHT):
+    return randint(1, HEIGHT * 50) / 100
+
 def create_new_brain(WIDTH, HEIGHT):
     coef = 0.5
     neurons = []
@@ -47,7 +50,7 @@ def create_new_brain(WIDTH, HEIGHT):
             inputType = randint(0, 7)
 
             if (inputType == 0):
-                distance = randint(1, HEIGHT * 50) / 100
+                distance = get_random_distance(HEIGHT)
 
                 pvMin = None
                 if randint(0, (1 - coef) * 10) == 0:
@@ -64,7 +67,7 @@ def create_new_brain(WIDTH, HEIGHT):
                 input = PlayerDistance("PlayerDistance", distance, pvMin, character, capaState)
             
             elif (inputType == 1):
-                distance = randint(1, HEIGHT * 50) / 100
+                distance = get_random_distance(HEIGHT)
 
                 kind = None
                 if randint(0, (1 - coef) * 10) == 0:
@@ -79,7 +82,7 @@ def create_new_brain(WIDTH, HEIGHT):
                 input = TimeLeft("TimeLeft", maxTime, minTime)
             
             elif (inputType == 3):
-                distance = randint(1, HEIGHT * 50) / 100
+                distance = get_random_distance(HEIGHT)
 
                 pvMin = None
                 if randint(0, (1 - coef) * 10) == 0:
@@ -113,7 +116,7 @@ def create_new_brain(WIDTH, HEIGHT):
                 if randint(0, (1 - coef) * 10) == 0:
                     tileCollision = randint(0, 1) == 1
 
-                input = TilesAround((randint(-3, 3), randint(-3, 3)), tileType, tileCollision)
+                input = TilesAround("TilesAround", (randint(-3, 3), randint(-3, 3)), tileType, tileCollision)
             
             inputs.append(input)
         
@@ -206,6 +209,25 @@ class Input:
     
     def getInputData(self):
         return self.inputData
+    
+def mutateProperty(property):
+    attrType = type(property)
+
+    if attrType is Literal:
+        oldProp = property
+        args = get_args(attrType)
+        i = 0
+        while property == oldProp and i < len(args): # Avoid infinite choosing if there's only one possible value
+            property = choice(args)
+            i += 1
+
+        print(f"Mutated Literal")
+    
+    elif attrType is float:
+        property += randint(-50, 50) / 100
+
+    else:
+        print(f"Cannot mutate {attrType} for now.")
 
 @dataclass
 class PlayerDistance(Input):
@@ -356,7 +378,7 @@ class TilesAround(Input):
         if not tile:
             return self.tileCollision == True # If a collision is needed and there is no tile, return True, False otherwise
 
-        return ( not self.tileType or self.tileType == tile.name ) and ( self.tileCollision == tile.doesCollide(selfAI.zIndex) )
+        return ( not self.tileType or self.tileType == tile.type ) and ( self.tileCollision == tile.doesCollide(selfAI.zIndex) )
 
 @dataclass
 class Output:
@@ -414,8 +436,8 @@ class SimpleKey(Output):
 
 def save_brains(brains, files):
     for i in range(len(brains)):
-        with open(f"../data/IA/{files[i]}.yaml", "w") as f:
+        with open(f"./data/IA/{files[i]}.yaml", "w") as f:
             yaml.dump(brains[i], f)
 
-        with open(f"../data/IA/{files[i]}.json", "w") as f:
+        with open(f"./data/IA/{files[i]}.json", "w") as f:
             json.dump(dataclasses.asdict(brains[i]), f)
