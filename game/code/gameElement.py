@@ -38,7 +38,6 @@ class GameElement:
                 
                 if (tile and tile.overLayer):
                     tile.overLayer.launch_animation("burning")
-                    # print("GOT ", tile.overLayer.get_loop_time("burning"))
                     # self.scheduleMethod(3, self.setTileCollide, (x, y))
 
                     # Temp fix
@@ -154,6 +153,9 @@ class Entity(GameElement):
 
         self.healthBar = AnimationPanel(self, "healthBar", "idle")
     
+    def addPoints(self, amount):
+        self.points += amount
+    
     def attackAround(self, gameState, attackEnemies=True):
         distances = get_distance_from_all_entities(gameState, self)
         
@@ -190,7 +192,7 @@ class Entity(GameElement):
         self.dead = True
 
         # Stats
-        attacker.points += 10
+        attacker.addPoints(10)
     
     def regenerate(self, amount):
         self.health += amount
@@ -381,7 +383,7 @@ class GameObject(GameElement):
                 if manhattan_dist(gameState.tileSize, self, player) < 1:
                     self.isOnGround = False
                     player.pickedObjects += 1
-                    player.points += 3
+                    player.addPoints(3)
                     
                     # Touches the object
 

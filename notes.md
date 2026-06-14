@@ -60,7 +60,7 @@ Dans les grandes lignes :
 
 - **IndexError: list index out of range** - Ce bug survient je pense quand une IA essaye de trouver un chemin vers une case qui n'existe pas. Je n'ai pas encore pris le temps de le régler comme il n'arrive pas si souvent que ça, mais ce n'est quand même pas négligeable, et encore moins lorsqu'il s'agit de faire tourner ce programme des heures pour entraîner les IA.
 
-- **Le bouclier du fletcher n'est pas fonctionnel**, - C'est assez embêtant - il s'active en bleu mais ne protège pas vraiment des dégâts
+- ~~**Le bouclier du fletcher n'est pas fonctionnel**, - C'est assez embêtant - il s'active en bleu mais ne protège pas vraiment des dégâts~~
 
 ## Les prochains ajouts
 
@@ -70,13 +70,15 @@ Dans les grandes lignes :
 
 - **Ajouter les attaques manquantes, voire de nouveaux personnages**
 
+- **Optimiser le pathfinding** - càd remplir la map avec la distance des cases de manière limitée (ex: qu'une case autour) puis vérifier si un chemin est possible, puis augmenter cette limite, et recommencer... Permet de ne pas remplir inutilement les cases pour les petites distances, ce qui est souvent le cas.
+
 - **Ajouter des nouveaux capteurs / de nouvelles Outputs pour les IA**, Comme les cases alentoures, ou le résultat du dernier pathfinding si pas trouvé (la case la plus haute, ...) ce qui me fait me questionner quant au comportement : Définir dans le code des comportements définis est moins intéressant que laisser les IA faire leur propre stratégie. Ce que je peux faire, au contraire, c'est leur permettre que créer le contenu de leur propre comportement, comme des variables booléennes qui rentrent comme capteur, permettant de faciliter la compréhension du cerveau.
 
 - **Système de points intra-neuronaux**. Dans les secondes qui suivent l'activation d'un neurone, si l'action qui en résulte est positive, attribuer des points aux neurones, pour moins préférer les muter ensuite (Néanmoins, ne pas interdire la mutation du meilleur neurone. Le neurone avec le plus de points n'est pas forcément le plus performant, et laisser les IA évoluer sans ce neurone permet d'éviter aussi d'avoir que le même cerveau final)
 
 ### Secondaires
 
-- **Arbres vivants cachés**. Les arbres vivants seraient cachés, et leur vie aussi, mais leur visage serait toujours visible. Ils continueraient de faire des dégâts rapides, et se révèleraient si un joueur les approchent trop.
+- ~~**Arbres vivants cachés**. Les arbres vivants seraient cachés, et leur vie aussi, mais leur visage serait toujours visible. Ils continueraient de faire des dégâts rapides, et se révèleraient si un joueur les approchent trop.~~
 
 - **Ajouter une caméra défilante** - Cela permettrait de mieux diserner les textures, car on pourrait les afficher en plus gros, en plus d'ajouter de la difficulté quant aux joueurs/ennemis, et leur position
 

@@ -3,9 +3,7 @@ import dataclasses
 import json
 from random import choice, randint
 import sys
-from typing import Literal, get_args
-
-import yaml
+from typing import Literal, get_args, _GenericAlias
 
 from gameElement import Enemy
 from utils import getAngleFromEntities, getMousePosFromAngle, manhattan_dist
@@ -13,10 +11,14 @@ from player import PartialPlayer, AI
 
 BEHAVIORS = ["noBehavior", "collaborator", "bourin", "sniper", "coward", "armorer", "simpleAttacker"]
 OBJECTS = ["bomb", "armor", "sword"]
+PLAYER_CHARS = ["wizard", "fletcher", "knight"]
+ENEMIES = ["blob", "bat", "livingTree"]
 MAX_TIME = 300
 CAPA_STATES = ["charging", "using", "ready", "fullBar"]
 KEYS = ["s", "z", "q", "d"]
 TILE_TYPES = ["grass", "river"]
+WIDTH = 10
+HEIGHT = 8
 
 def load_brain(filename) -> "Brain":
     with open(f"./data/IA/{filename}.json", "r") as f:
@@ -37,9 +39,6 @@ def load_brain(filename) -> "Brain":
 
     return brain
 
-def get_random_distance(HEIGHT):
-    return randint(1, HEIGHT * 50) / 100
-
 def create_new_brain(WIDTH, HEIGHT):
     coef = 0.5
     neurons = []
@@ -47,103 +46,107 @@ def create_new_brain(WIDTH, HEIGHT):
         inputs: list[Input] = []
 
         for j in range(randint(1, 3)):
-            inputType = randint(0, 7)
+            inputType = choice([PlayerDistance, NearestObject, TimeLeft, EnemyDistance, AttackingEntity, OwnCapacityState, OwnHealthPercentage, TilesAround])
 
-            if (inputType == 0):
-                distance = get_random_distance(HEIGHT)
-
-                pvMin = None
-                if randint(0, (1 - coef) * 10) == 0:
-                    pvMin = randint(1, 100)
-                
-                character = None
-                if randint(0, (1 - coef) * 10) == 0:
-                    character = choice(["wizard", "knight"])
-                
-                capaState = None
-                if randint(0, (1 - coef) * 10) == 0:
-                    capaState = choice(["charging", "using", "ready", "fullBar"])
-
-                input = PlayerDistance("PlayerDistance", distance, pvMin, character, capaState)
+            annots = inputType.__annotations__
+            args = [
+                generate_property(prop, None, is_nullable(annots[prop])) for prop in annots.keys() if prop != "type"
+            ]
             
-            elif (inputType == 1):
-                distance = get_random_distance(HEIGHT)
-
-                kind = None
-                if randint(0, (1 - coef) * 10) == 0:
-                    kind = choice(OBJECTS)
-
-                input = NearestObject("NearestObject", distance, kind)
-            
-            elif (inputType == 2):
-                minTime = randint(0, MAX_TIME-1)
-                maxTime = randint(minTime, MAX_TIME)
-
-                input = TimeLeft("TimeLeft", maxTime, minTime)
-            
-            elif (inputType == 3):
-                distance = get_random_distance(HEIGHT)
-
-                pvMin = None
-                if randint(0, (1 - coef) * 10) == 0:
-                    pvMin = randint(1, 100)
-                
-                character = None
-                if randint(0, (1 - coef) * 10) == 0:
-                    character = choice(["blob"])
-
-                input = EnemyDistance("EnemyDistance", distance, pvMin, character)
-            
-            elif (inputType == 4):
-                entityType = None
-                if randint(0, (1 - coef) * 10) == 0:
-                    entityType = choice(["enemy", "player"])
-
-                input = AttackingEntity("AttackingEntity", randint(0, MAX_TIME), entityType)
-            
-            elif (inputType == 5):
-                input = OwnCapacityState("OwnCapacityState", choice(CAPA_STATES))
-            
-            elif (inputType == 6):
-                input = OwnHealthPercentage("OwnHealthPercentage", randint(0, 100), randint(0, 100))
-            
-            else:
-                tileType = None
-                if randint(0, (1 - coef) * 10) == 0:
-                    tileType = choice(TILE_TYPES)
-                
-                tileCollision = None
-                if randint(0, (1 - coef) * 10) == 0:
-                    tileCollision = randint(0, 1) == 1
-
-                input = TilesAround("TilesAround", (randint(-3, 3), randint(-3, 3)), tileType, tileCollision)
-            
-            inputs.append(input)
+            inputs.append(inputType(inputType.__name__, *args))
         
-        outputType = randint(0, 4)
+        outputType = choice([GoalTile, Capacity, SimpleKey, Attack])
 
-        if outputType == 0:
-            output = Behavior("Behavior", choice(BEHAVIORS))
+        annots = outputType.__annotations__
+        args = [
+            generate_property(prop, None, is_nullable(annots[prop])) for prop in annots.keys() if prop != "type"
+        ]
         
-        elif outputType == 1:
-            goal = (0,0)
-            if randint(0, 1) == 0:
-                goal = "inputData"
-
-            output = GoalTile("GoalTile", goal, randint(0, 2) != 0)
-        
-        elif outputType == 2:
-            output = Capacity("Capacity")
-        
-        elif outputType == 3:
-            output = Attack("Attack")
-        
-        else:
-            output = SimpleKey("SimpleKey", choice(KEYS))
+        output = outputType(outputType.__name__, *args)
         
         neurons.append(Neuron(inputs, output))
     
     return Brain(neurons)
+
+def is_nullable(propType):
+    return isinstance(propType, _GenericAlias) and type(None) in propType.__args__
+
+def generate_property(property: str, value, nullable=False):
+    property = property.lower()
+
+    if nullable and randint(0, 3) == 0:
+        return None
+
+    result = value
+    i = 0
+    while result == value:
+        i += 1
+        if "pv" in property:
+            if value:
+                result = value + randint(-10, 10)
+            else:
+                result = randint(0, 200)
+        elif "character" in property:
+            result = choice(PLAYER_CHARS)
+        elif property == "capastate":
+            result = choice(CAPA_STATES)
+        elif property == "objkind":
+            result = choice(OBJECTS)
+        elif "time" in property:
+            if value:
+                result = value + randint(-20, 20)
+            else:
+                result = randint(1, MAX_TIME)
+        elif property == "enemychar":
+            result = choice(ENEMIES)
+        elif property == "entitytype":
+            result = choice(["player", "enemy"])
+        elif "percentage" in property:
+            if value:
+                result = result + randint(-30, 30)
+                if result > 100:
+                    result = 100
+                elif result < 0:
+                    result = 0
+            else:
+                result = randint(1, 100)
+        elif property == "relativepos":
+            if value:
+                result = [value[0] + randint(-2, 2), value[1] + randint(-2, 2)]
+            else:
+                result = [randint(-2, 2), randint(-2, 2)]
+        elif property in ["globalpos", "coords"]:
+            if property == "coords" and randint(0, 5) != 0:
+                if value and not type(value) is str:
+                    result = [value[0] + randint(-5, 5), value[1] + randint(-5, 5)]
+                else:
+                    result = [randint(0, WIDTH), randint(0, HEIGHT)]
+            else:
+                result = "inputData"
+
+            # TODO : Put map limit here
+        elif "tiletype" in property:
+            result = choice(TILE_TYPES)
+        elif property in ["tilecollision", "reversed"]:
+            result = randint(0, 1) == 0
+        elif "key" in property:
+            result = choice(KEYS)
+        elif "behavior" in property:
+            result = choice(BEHAVIORS)
+        elif "distance" in property:
+            if value:
+                result = value + randint(-30, 30) / 100
+                if result < 0:
+                    result = 0
+            else:
+                result = randint(0, 300) / 100
+        else:
+            print("DIDN'T FIND :", property)
+        
+        if i > 10:
+            break
+    
+    return result
 
 def mixInputDatas(inputDatas):
     result = InputData(0, 0, 0)
@@ -181,8 +184,13 @@ class Brain:
     neurons: list["Neuron"]
 
     def checkNeurons(self, gameState: GameState, selfAI):
+        result = []
         for neuron in self.neurons:
-            neuron.checkNeuron(gameState, selfAI)
+            enabled = neuron.checkNeuron(gameState, selfAI)
+            if enabled:
+                result.append(neuron)
+        
+        return result
 
 @dataclass
 class Neuron:
@@ -199,6 +207,8 @@ class Neuron:
         
         if checked:
             self.output.performAction(mixInputDatas([input.getInputData() for input in self.inputs]), selfAI)
+        
+        return checked
 
 @dataclass
 class Input:
@@ -209,25 +219,6 @@ class Input:
     
     def getInputData(self):
         return self.inputData
-    
-def mutateProperty(property):
-    attrType = type(property)
-
-    if attrType is Literal:
-        oldProp = property
-        args = get_args(attrType)
-        i = 0
-        while property == oldProp and i < len(args): # Avoid infinite choosing if there's only one possible value
-            property = choice(args)
-            i += 1
-
-        print(f"Mutated Literal")
-    
-    elif attrType is float:
-        property += randint(-50, 50) / 100
-
-    else:
-        print(f"Cannot mutate {attrType} for now.")
 
 @dataclass
 class PlayerDistance(Input):
@@ -244,10 +235,10 @@ class PlayerDistance(Input):
             if player != selfAI:
                 distance = manhattan_dist(gameState.tileSize, player, selfAI)
                 if ( not nearest and distance <= self.distance ) or ( distance <= nearestDist ):
-
                     # Check optionnal values
                     if  ( self.pvMin == None or ( player.health < self.pvMin ) ) and\
                         ( self.character == None or ( player.character == self.character ) ):
+                        # print("Checked !")
                         
                         angle = getAngleFromEntities(selfAI, player)
                         nearest = player
@@ -265,7 +256,7 @@ class PlayerDistance(Input):
 class NearestObject(Input):
     type: Literal["NearestObject"]
     distance: int
-    kind: Literal["bomb", "armor", "sword"] | None
+    objKind: Literal["bomb", "armor", "sword"] | None
 
     def isChecked(self, gameState, selfAI):
         nearest = None
@@ -276,7 +267,7 @@ class NearestObject(Input):
             if distance < self.distance:
                 if ( not nearest and distance < self.distance ) or ( distance <= nearestDist ):
                     # Optionnal values
-                    if ( not self.kind or obj.name == self.kind ):
+                    if ( not self.objKind or obj.name == self.objKind ):
                         angle = getAngleFromEntities(selfAI, obj)
                         nearest = obj
                         nearestDist = distance
@@ -303,7 +294,7 @@ class EnemyDistance(Input):
     type: Literal["EnemyDistance"]
     distance: float
     pvMin: int | None
-    character: Literal["blob"] | None
+    enemyChar: Literal["blob", "bat", "livingTree"] | None
 
     def isChecked(self, gameState: GameState, selfAI: AI):
         nearest = None
@@ -314,7 +305,7 @@ class EnemyDistance(Input):
 
                 # Check optionnal values
                 if  ( self.pvMin == None or ( enemy.health < self.pvMin ) ) and\
-                    ( self.character == None or ( enemy.character == self.character ) ):
+                    ( self.enemyChar == None or ( enemy.character == self.enemyChar ) ):
                     
                     nearest = enemy
                     nearestDist = distance
@@ -343,14 +334,14 @@ class AttackingEntity(Input):
 @dataclass
 class OwnCapacityState(Input):
     type: Literal["OwnCapacityState"]
-    state: Literal["charging", "using", "ready", "fullBar"]
+    capaState: Literal["charging", "using", "ready", "fullBar"]
 
     def isChecked(self, gameState: GameState, selfAI: AI):
-        if self.state == "charging":
+        if self.capaState == "charging":
             return selfAI.capaCurrCooldown < selfAI.capaMaxCooldown / selfAI.mapCapaUsesWithFullBar
-        elif self.state == "using":
+        elif self.capaState == "using":
             return selfAI.capaUsing
-        elif self.state == "ready":
+        elif self.capaState == "ready":
             return selfAI.capaCurrCooldown >= selfAI.capaMaxCooldown / selfAI.mapCapaUsesWithFullBar
         else:
             return selfAI.capaCurrCooldown >= selfAI.capaMaxCooldown
@@ -403,8 +394,8 @@ class GoalTile(Output):
         if self.coords == "inputData":
             if inputData.pos:
                 selfAI.setGoalTile(inputData.pos, self.reversed)
-            else:
-                print("no inputData")
+            # else:
+            #     print("no inputData")
         else:
             selfAI.setGoalTile(self.coords, self.reversed)
 
@@ -436,8 +427,8 @@ class SimpleKey(Output):
 
 def save_brains(brains, files):
     for i in range(len(brains)):
-        with open(f"./data/IA/{files[i]}.yaml", "w") as f:
-            yaml.dump(brains[i], f)
+        # with open(f"./data/IA/{files[i]}.yaml", "w") as f:
+        #     yaml.dump(brains[i], f)
 
         with open(f"./data/IA/{files[i]}.json", "w") as f:
             json.dump(dataclasses.asdict(brains[i]), f)

@@ -15,20 +15,25 @@ from utils import *
 
 import datetime
 
-def play(playerMode=True):
-    display_info = pygame.display.Info()
+display_info = pygame.display.Info()
 
-    TILES_SIZE = 50
-    BACKGROUND_HEIGHT = int(display_info.current_h // TILES_SIZE) - 2
-    BACKGROUND_WIDTH = int(display_info.current_w // TILES_SIZE) - 1
-    GAME_DURATION = 180 # seconds
-    GRAPHIC_MODE = playerMode
+TILES_SIZE = 50
+BACKGROUND_HEIGHT = int(display_info.current_h // TILES_SIZE) - 2
+BACKGROUND_WIDTH = int(display_info.current_w // TILES_SIZE) - 1
+GAME_DURATION = 180 # seconds
+
+def play(playerMode=True, brains=None, graphicMode=True):
+    GRAPHIC_MODE = graphicMode
+    PLAYER_MODE = playerMode
 
     # HEIGHT 18
     # WIDTH 30
     init_textures(TILES_SIZE)
 
-    window = pygame.display.set_mode([TILES_SIZE * BACKGROUND_WIDTH, TILES_SIZE * BACKGROUND_HEIGHT])
+    window = None
+    if GRAPHIC_MODE:
+        window = pygame.display.set_mode([TILES_SIZE * BACKGROUND_WIDTH, TILES_SIZE * BACKGROUND_HEIGHT])
+    
     background = Background(window, BACKGROUND_WIDTH, BACKGROUND_HEIGHT, TILES_SIZE)
 
     generateBackground(background, BACKGROUND_WIDTH, BACKGROUND_HEIGHT)
@@ -36,13 +41,19 @@ def play(playerMode=True):
     FPS = 60
     newFPS = 60
     
-    AIS = [
-        AI(background, choice(["wizard", "fletcher", "knight"]), TILES_SIZE, create_new_brain(BACKGROUND_WIDTH, BACKGROUND_HEIGHT)) for i in range(5)
-    ]
+    if not playerMode:
+        AIS = [
+            AI(background, choice(["wizard", "fletcher", "knight"]), TILES_SIZE, brain) for brain in brains
+        ]
+    else:
+        AIS = []
+        for i in range(10):
+            char = choice(["wizard", "fletcher", "knight"])
+            AIS.append(AI(background, char, TILES_SIZE, load_brain("wizard")))
 
     allPlayers = AIS
-    if playerMode:
-        player = Player(background, "fletcher", TILES_SIZE)
+    if PLAYER_MODE:
+        player = Player(background, choice(["wizard", "fletcher", "knight"]), TILES_SIZE)
         capaBar = UIElement(background, TILES_SIZE * (BACKGROUND_WIDTH - 1), TILES_SIZE * (BACKGROUND_HEIGHT - 5), "capaBar", "background", "cursor", TILES_SIZE, 5*TILES_SIZE)
         allPlayers.append(player)
 
@@ -57,7 +68,7 @@ def play(playerMode=True):
         window.fill([0,0,0,0])
         background.reload()
         
-        if playerMode:
+        if PLAYER_MODE:
             if player.protectedTime > 0:
                 player.protectionField.reload()
             else:
@@ -68,8 +79,9 @@ def play(playerMode=True):
         for entity in gameState.getAllEntities():
             entity.reload()
 
-        capaBar.reload()
-        capaBar.cropOverLayer((1 - (player.capaCurrCooldown / player.capaMaxCooldown )) * 5 * TILES_SIZE)
+        if PLAYER_MODE:
+            capaBar.reload()
+            capaBar.cropOverLayer((1 - (player.capaCurrCooldown / player.capaMaxCooldown )) * 5 * TILES_SIZE)
 
         if gameState.timeLeft < 0:
             endScreen.reload()
@@ -88,6 +100,9 @@ def play(playerMode=True):
     font = pygame.font.SysFont('Comic Sans MS', 30)
 
     rendered_final_texts = False
+
+    step = GAME_DURATION / 10
+    currentStep = 0
 
     stop = False
     pathF = []
@@ -121,6 +136,12 @@ def play(playerMode=True):
 
         gameState.timeLeft -= 1/newFPS
 
+        if not GRAPHIC_MODE:
+            currentStep += 1/newFPS
+            if currentStep >= step:
+                print("Temps de jeu restant :", round(gameState.timeLeft))
+                currentStep = 0
+
         if gameState.timeLeft <= 0 and not rendered_final_texts:
             text = "Partie terminée !"
             if player.dead:
@@ -132,6 +153,9 @@ def play(playerMode=True):
             texts = [f"Ennemis tués : {player.killedEnemies},", f"Adversaires tués: {player.killedPlayers},", f"Capacité utilisée : {player.usedCapaTimes} fois,", f"Objets ramassés : {player.pickedObjects}", f"Points totaux: {player.points},"]
             stats_surfaces = [font.render(text, False, (0, 0, 0)) for text in texts]
             stats_pos = [(BACKGROUND_WIDTH*TILES_SIZE//2 - stats_surfaces[i].get_width()//2, BACKGROUND_HEIGHT*TILES_SIZE//2 + (i - len(texts)//2) * stats_surfaces[i].get_height()) for i in range(len(texts))]
+
+            if not GRAPHIC_MODE:
+                stop = True
 
         if GRAPHIC_MODE:
             global_reload()
@@ -153,6 +177,9 @@ def play(playerMode=True):
         
         if GRAPHIC_MODE:
             sleep(1/FPS)
+    
+    if not PLAYER_MODE:
+        return [(p.points, [neuron.points for neuron in p.brain.neurons]) for p in allPlayers]
 
     # TODO
     # Traceback (most recent call last):

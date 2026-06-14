@@ -1,4 +1,5 @@
 import json
+from random import randint
 import pygame, keyboard
 from bgElement import Background
 from utils import getProjectileEndPointAndAngle
@@ -78,7 +79,7 @@ class PartialPlayer(Entity):
                 
                 # Stats
                 self.usedCapaTimes += 1
-                self.points += 5
+                self.addPoints(5)
 
                 if (self.capaCurrCooldown < 0):
                     self.capaCurrCooldown = 0
@@ -104,15 +105,27 @@ class PartialPlayer(Entity):
             if not self.attackClicking:
                 self.attackClicking = True
 
-                if (self.character == "wizard"):
-                    endPos, angle = getProjectileEndPointAndAngle((self.xpos, self.ypos), self.mousePos, self.attackRange, self.tileSize)
-                    animatedElement = self.background.addAnimatedElement("magicBlast", (self.xpos, self.ypos), endPos, 10, self, "idle", self.attackDM, 255)
-                    animatedElement.animPanel.set_rotation(angle / 90)
+                projectileName = {
+                    "wizard": "magicBlast",
+                    "fletcher": "arrow",
+                    "knight": "sword"
+                }
 
-                elif (self.character == "fletcher"):
-                    endPos, angle = getProjectileEndPointAndAngle((self.xpos, self.ypos), self.mousePos, self.attackRange, self.tileSize)
-                    animatedElement = self.background.addAnimatedElement("arrow", (self.xpos, self.ypos), endPos, 10, self, "idle", self.attackDM)
-                    animatedElement.animPanel.set_rotation(angle / 90)
+                opacityGrowth = {
+                    "wizard": 255,
+                    "fletcher": 0,
+                    "knight": 0
+                }
+
+                DM = {
+                    "wizard": 10,
+                    "fletcher": 7,
+                    "knight": 15
+                }
+
+                endPos, angle = getProjectileEndPointAndAngle((self.xpos, self.ypos), self.mousePos, self.attackRange, self.tileSize)
+                animatedElement = self.background.addAnimatedElement(projectileName[self.character], (self.xpos, self.ypos), endPos, 10, self, "idle", self.attackDM, opacityGrowth[self.character])
+                animatedElement.animPanel.set_rotation(angle / 90)
         
         else:
             self.attackClicking = False
@@ -128,7 +141,6 @@ class PartialPlayer(Entity):
 
     def hurt(self, amount, attacker):
         if not self.protectedTime > 0:
-            print(self.protectedTime)
             super().hurt(amount, attacker)
     
     def enableShield(self, time):
@@ -181,6 +193,7 @@ class AI(PartialPlayer):
         self.distance = 0
         self.pressedKeys = {}
         self.brain = brain
+        self.lastEnabledNeurons = [] # Format : [{neuron: Neuron, time: someTime}, {neuron: Neuron2, time: someTime2}]
         self.behavior = "noBehavior"
 
         self.capaAIClickingTime = 0
@@ -198,6 +211,19 @@ class AI(PartialPlayer):
         if reversed:
             for i in range(len(self.path)):
                 self.path[i] = ( self.path[i][0] * -1, self.path[i][1] * -1 )
+    
+    def addPoints(self, amount):
+        super().addPoints(amount)
+
+        for neuronData in self.lastEnabledNeurons: # Add points to specific neurons
+            neuronData["neuron"].points += amount
+    
+    def getLastEnabledNeuronIndex(self, neuron):
+        for i in range(len(self.lastEnabledNeurons)):
+            if self.lastEnabledNeurons[i]["neuron"] == neuron:
+                return i
+        
+        return None
 
     def move(self, FPS, gameState):
         self.pressedKeys = {
@@ -209,7 +235,23 @@ class AI(PartialPlayer):
             "capacity": False
         }
 
-        self.brain.checkNeurons(gameState, self)
+        # Decrease time
+        diff = 0
+        for i in range(len(self.lastEnabledNeurons)):
+            neuronData = self.lastEnabledNeurons[i-diff]
+
+            neuronData["time"] -= 1/FPS
+            if neuronData["time"] <= 0:
+                del self.lastEnabledNeurons[i-diff]
+                diff += 1
+
+        activatedNeurons = self.brain.checkNeurons(gameState, self)
+        for neuron in activatedNeurons:
+            index = self.getLastEnabledNeuronIndex(neuron)
+            if index:
+                del self.lastEnabledNeurons[index]
+
+            self.lastEnabledNeurons.append({"neuron": neuron, "time": 5}) # These neurons will get points 5 after being enabled
 
         # Clicking
 
@@ -251,6 +293,6 @@ class AI(PartialPlayer):
         # Clicking time
 
         if self.capaClicking == True and oldCapaClicking == False:
-            self.capaAIClickingTime = 0.5
+            self.capaAIClickingTime = randint(10, 70) / 10
         if self.attackClicking == True and oldAttackClicking == False:
-            self.attackAIClickingTime = 0.5
+            self.attackAIClickingTime = randint(10, 70) / 10

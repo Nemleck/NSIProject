@@ -30,8 +30,8 @@ class Background:
 
             groupSpawn = {
                 "livingTree": 1,
-                "blob": 5,
-                "bat": 3
+                "blob": 3,
+                "bat": 2
             }
             
             pos = getSpawnablePlace(self, 0)

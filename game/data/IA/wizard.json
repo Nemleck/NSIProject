@@ -1,1 +1,199 @@
-{"neurons": [{"inputs": [{"type": "TilesAround", "relativePos": [3, -3], "tileType": null, "tileCollision": null}, {"type": "OwnHealthPercentage", "minPercentage": 3, "maxPercentage": 26}], "output": {"type": "GoalTile", "coords": "inputData", "reversed": false}, "points": 0}, {"inputs": [{"type": "OwnCapacityState", "state": "ready"}, {"type": "TilesAround", "relativePos": [-3, 3], "tileType": null, "tileCollision": null}], "output": {"type": "Capacity"}, "points": 0}, {"inputs": [{"type": "TilesAround", "relativePos": [-1, 1], "tileType": null, "tileCollision": null}, {"type": "TilesAround", "relativePos": [-3, -2], "tileType": null, "tileCollision": false}, {"type": "TilesAround", "relativePos": [-1, -3], "tileType": null, "tileCollision": null}], "output": {"type": "GoalTile", "coords": [0, 0], "reversed": true}, "points": 0}, {"inputs": [{"type": "TilesAround", "relativePos": [0, -3], "tileType": null, "tileCollision": null}, {"type": "EnemyDistance", "distance": 3.41, "pvMin": null, "character": null}], "output": {"type": "Capacity"}, "points": 0}, {"inputs": [{"type": "TimeLeft", "maxTime": 291, "minTime": 107}, {"type": "EnemyDistance", "distance": 1.38, "pvMin": null, "character": null}], "output": {"type": "Behavior", "behavior": "collaborator"}, "points": 0}, {"inputs": [{"type": "AttackingEntity", "maxTime": 21, "entityType": null}, {"type": "TilesAround", "relativePos": [-1, -3], "tileType": "river", "tileCollision": null}], "output": {"type": "Attack"}, "points": 0}, {"inputs": [{"type": "OwnHealthPercentage", "minPercentage": 34, "maxPercentage": 38}, {"type": "PlayerDistance", "distance": 0.1, "pvMin": null, "character": null, "capaState": null}, {"type": "NearestObject", "distance": 2.33, "kind": null}], "output": {"type": "GoalTile", "coords": "inputData", "reversed": true}, "points": 0}, {"inputs": [{"type": "TilesAround", "relativePos": [-3, -3], "tileType": null, "tileCollision": null}], "output": {"type": "Behavior", "behavior": "bourin"}, "points": 0}, {"inputs": [{"type": "TimeLeft", "maxTime": 203, "minTime": 145}, {"type": "OwnCapacityState", "state": "fullBar"}], "output": {"type": "Behavior", "behavior": "bourin"}, "points": 0}, {"inputs": [{"type": "OwnCapacityState", "state": "fullBar"}, {"type": "OwnHealthPercentage", "minPercentage": 53, "maxPercentage": 44}], "output": {"type": "Capacity"}, "points": 0}]}
+{
+    "neurons": [
+        {
+            "inputs": [
+                {
+                    "type": "AttackingEntity",
+                    "maxTime": 25,
+                    "entityType": "player"
+                },
+                {
+                    "type": "OwnCapacityState",
+                    "capaState": "using"
+                }
+            ],
+            "output": {
+                "type": "SimpleKey",
+                "key": "z"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "OwnCapacityState",
+                    "capaState": "charging"
+                },
+                {
+                    "type": "NearestObject",
+                    "distance": 1.88,
+                    "objKind": "sword"
+                }
+            ],
+            "output": {
+                "type": "GoalTile",
+                "coords": [
+                    4,
+                    6
+                ],
+                "reversed": true
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "NearestObject",
+                    "distance": 0.49,
+                    "objKind": "bomb"
+                },
+                {
+                    "type": "AttackingEntity",
+                    "maxTime": 25,
+                    "entityType": "player"
+                }
+            ],
+            "output": {
+                "type": "SimpleKey",
+                "key": "q"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "NearestObject",
+                    "distance": 0.66,
+                    "objKind": "sword"
+                },
+                {
+                    "type": "OwnHealthPercentage",
+                    "minPercentage": 35,
+                    "maxPercentage": 49
+                },
+                {
+                    "type": "TimeLeft",
+                    "maxTime": 271,
+                    "minTime": 166
+                }
+            ],
+            "output": {
+                "type": "SimpleKey",
+                "key": "d"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "TimeLeft",
+                    "maxTime": 248,
+                    "minTime": 161
+                },
+                {
+                    "type": "TilesAround",
+                    "relativePos": [
+                        -1,
+                        2
+                    ],
+                    "tileType": "river",
+                    "tileCollision": true
+                },
+                {
+                    "type": "OwnCapacityState",
+                    "capaState": "charging"
+                }
+            ],
+            "output": {
+                "type": "Attack"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "OwnHealthPercentage",
+                    "minPercentage": 55,
+                    "maxPercentage": 17
+                }
+            ],
+            "output": {
+                "type": "Attack"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "NearestObject",
+                    "distance": 0.73,
+                    "objKind": "armor"
+                },
+                {
+                    "type": "PlayerDistance",
+                    "distance": 0.72,
+                    "pvMin": 53,
+                    "character": "fletcher",
+                    "capaState": "ready"
+                },
+                {
+                    "type": "EnemyDistance",
+                    "distance": 1.68,
+                    "pvMin": 131,
+                    "enemyChar": "livingTree"
+                }
+            ],
+            "output": {
+                "type": "Attack"
+            },
+            "points": 0
+        },
+        {
+            "inputs": [
+                {
+                    "type": "NearestObject",
+                    "distance": 2.1,
+                    "objKind": null
+                }
+            ],
+            "output": {
+                "type": "Capacity"
+            },
+            "points": 14573
+        },
+        {
+            "inputs": [
+                {
+                    "type": "OwnCapacityState",
+                    "capaState": "ready"
+                }
+            ],
+            "output": {
+                "type": "GoalTile",
+                "coords": [
+                    7,
+                    8
+                ],
+                "reversed": true
+            },
+            "points": 46539
+        },
+        {
+            "inputs": [
+                {
+                    "type": "AttackingEntity",
+                    "maxTime": 195,
+                    "entityType": "enemy"
+                },
+                {
+                    "type": "OwnCapacityState",
+                    "capaState": "using"
+                }
+            ],
+            "output": {
+                "type": "Attack"
+            },
+            "points": 40
+        }
+    ]
+}
